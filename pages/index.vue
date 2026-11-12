@@ -1,35 +1,16 @@
 <template>
-  <div class="h-screen w-screen flex flex-col overflow-hidden bg-dark-950 select-none">
-    <!-- Navbar -->
-    <Navbar
-      :reports-count="reports.length"
-      :havens-count="safeHavens.length"
-      @open-report-modal="openReportModal()"
-    />
-
-    <!-- Main Content Area: Sidebar + Map -->
-    <div class="flex-1 flex relative overflow-hidden">
-      <!-- Sidebar / Mobile Drawer -->
-      <SidebarReports
-        :reports="reports"
-        :safe-havens="safeHavens"
-        :active-category="activeCategory"
-        @focus-location="handleFocusLocation"
-        @upvote="handleUpvote"
+  <div class="min-h-screen bg-[#EBECEF] p-3 sm:p-5 lg:p-6 flex flex-col items-center justify-start antialiased font-sans">
+    <!-- Main Dashboard Frame (Matching ArgoLogistics Dribbble Canvas) -->
+    <div class="w-full max-w-[1440px] bg-[#F4F5F7] rounded-[32px] p-4 sm:p-5 border border-slate-300/60 shadow-2xl flex flex-col gap-4">
+      <!-- 1. Top Navbar -->
+      <Navbar
+        :reports-count="reports.length"
+        :havens-count="safeHavens.length"
         @open-report-modal="openReportModal()"
       />
 
-      <!-- Map Viewport -->
-      <main class="flex-1 relative h-full">
-        <!-- Floating Filter Bar Top -->
-        <div class="absolute top-4 left-4 z-[400] max-w-[calc(100vw-120px)] sm:max-w-xl">
-          <FilterBar
-            :active-category="activeCategory"
-            @update:category="activeCategory = $event"
-          />
-        </div>
-
-        <!-- Leaflet Client Component -->
+      <!-- 2. Hero Section: Dedicated Map Card (Framed, No Collisions) -->
+      <section class="w-full">
         <ClientOnly>
           <SafetyMap
             ref="safetyMapRef"
@@ -39,29 +20,40 @@
             :is-picking-location="isPickingLocation"
             @select-location="handleSelectLocation"
             @upvote="handleUpvote"
+            @update:category="activeCategory = $event"
           />
           <template #fallback>
-            <div class="w-full h-full flex flex-col items-center justify-center bg-dark-950 text-slate-400 gap-3">
-              <span class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></span>
-              <p class="text-xs font-mono">Memuat Peta SafeZone Dark Mode...</p>
+            <div class="w-full h-[380px] rounded-3xl bg-slate-900 flex flex-col items-center justify-center text-slate-400 gap-3 border border-slate-200/80">
+              <span class="w-7 h-7 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></span>
+              <p class="text-xs font-semibold text-slate-300">Memuat Navigasi SafeZone...</p>
             </div>
           </template>
         </ClientOnly>
+      </section>
 
-        <!-- Floating Action Button (FAB) "+ Laporkan Titik Rawan" -->
-        <div class="absolute bottom-20 lg:bottom-8 right-6 z-[400]">
-          <button
-            @click="openReportModal()"
-            class="group relative flex items-center gap-2.5 px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-rose-950/80 border border-white/20 transition-all transform hover:-translate-y-0.5 active:scale-95"
-          >
-            <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-            <span>+ Laporkan Titik Rawan</span>
-          </button>
-        </div>
-      </main>
+      <!-- 3. Bottom Section: 3-Column Structured Dashboard Grid (Matching Dribbble Layout) -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Column 1: Incident & Validation Analytics (Delivery Volume style) -->
+        <IncidentAnalyticsCard
+          :reports-count="reports.length"
+        />
+
+        <!-- Column 2: Safe Haven Hub 24 Jam (Vehicles style) -->
+        <SafeHavenHubCard
+          :havens="safeHavens"
+          @focus-haven="handleFocusHaven"
+        />
+
+        <!-- Column 3: Latest Report & Peak Danger Hours (Latest Order & Sales style) -->
+        <LatestReportAndTrendsCard
+          :reports="reports"
+          @open-report-modal="openReportModal()"
+          @focus-report="handleFocusReport"
+        />
+      </section>
     </div>
 
-    <!-- Report Modal -->
+    <!-- Report Modal Popup -->
     <ReportModal
       :is-open="isReportModalOpen"
       :initial-coords="pickedCoords"
@@ -73,7 +65,7 @@
     <!-- Toast Notification -->
     <div
       v-if="toast.show"
-      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[700] px-4 py-2.5 rounded-2xl bg-dark-900 border border-white/10 shadow-2xl text-xs font-semibold flex items-center gap-2 text-white animate-fade-in"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[700] px-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-float text-xs font-semibold flex items-center gap-2 text-white animate-fade-in"
     >
       <span
         :class="[
@@ -114,7 +106,6 @@ function showToast(message: string, type: 'success' | 'info' = 'success') {
   }, 3500)
 }
 
-// Fetch Reports & Safe Havens from Backend API
 async function loadData() {
   try {
     const [reportsRes, havensRes] = await Promise.all([
@@ -137,20 +128,25 @@ onMounted(() => {
   loadData()
 })
 
-function handleFocusLocation(payload: { lat: number; lng: number }) {
-  if (safetyMapRef.value?.flyTo) {
-    safetyMapRef.value.flyTo(payload.lat, payload.lng, 16)
+function handleFocusHaven(haven: SafeHaven | undefined) {
+  if (haven && safetyMapRef.value?.flyTo) {
+    safetyMapRef.value.flyTo(haven.latitude, haven.longitude, 16)
+  }
+}
+
+function handleFocusReport(report: Report | undefined) {
+  if (report && safetyMapRef.value?.flyTo) {
+    safetyMapRef.value.flyTo(report.latitude, report.longitude, 16)
   }
 }
 
 async function handleUpvote(reportId: number) {
-  // Optimistic UI Update
   const target = reports.value.find(r => r.id === reportId)
   if (target) {
     target.upvotes += 1
   }
 
-  showToast('Terima kasih! Upvote Anda membantu memvalidasi titik rawan.', 'success')
+  showToast('Terima kasih! Upvote Anda memvalidasi titik rawan.', 'success')
 
   try {
     await $fetch(`/api/reports/${reportId}/upvote`, {
@@ -183,7 +179,7 @@ function handleSelectLocation(payload: { lat: number; lng: number }) {
 
 function handleReportCreated(newReport: Report) {
   reports.value.unshift(newReport)
-  showToast('Laporan berhasil ditambahkan! Warga sekitar kini terlindungi.', 'success')
+  showToast('Laporan berhasil ditambahkan! Warga sekitar kini terinformasi.', 'success')
   if (safetyMapRef.value?.flyTo) {
     safetyMapRef.value.flyTo(newReport.latitude, newReport.longitude, 16)
   }

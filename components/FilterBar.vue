@@ -1,14 +1,14 @@
 <template>
-  <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-1">
+  <div class="flex items-center gap-1 p-1 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-card overflow-x-auto no-scrollbar">
     <button
       v-for="filter in filters"
       :key="filter.id"
       @click="$emit('update:category', filter.id)"
       :class="[
-        'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 border active:scale-95',
+        'px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200 ease-smooth flex items-center gap-1.5 active:scale-95',
         activeCategory === filter.id
-          ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-900/40'
-          : 'bg-dark-900/80 hover:bg-dark-800 text-slate-300 border-white/10 hover:border-white/20 backdrop-blur-md'
+          ? 'bg-slate-900 text-white shadow-subtle font-semibold'
+          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
       ]"
     >
       <span
@@ -31,10 +31,10 @@ defineEmits<{
 
 const filters = [
   { id: 'all', label: 'Semua Kategori', dotColor: '' },
-  { id: 'begal', label: 'Begal & Kejahatan', dotColor: 'bg-rose-500 shadow-glow-danger' },
-  { id: 'geng_motor', label: 'Geng Motor / Tawuran', dotColor: 'bg-red-500' },
-  { id: 'gelap', label: 'Jalan Gelap / PJU', dotColor: 'bg-amber-400 shadow-glow-warning' },
-  { id: 'sepi', label: 'Jalan Sepi', dotColor: 'bg-yellow-400' }
+  { id: 'begal', label: 'Begal & Kejahatan', dotColor: 'bg-rose-500' },
+  { id: 'geng_motor', label: 'Geng Motor / Tawuran', dotColor: 'bg-amber-500' },
+  { id: 'gelap', label: 'PJU Mati / Gelap', dotColor: 'bg-yellow-500' },
+  { id: 'sepi', label: 'Jalan Sepi', dotColor: 'bg-slate-400' }
 ]
 </script>
 
