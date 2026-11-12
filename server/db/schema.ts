@@ -37,3 +37,4 @@ export type NewSafeHaven = InferInsertModel<typeof safeHavens>
 export type ReportCategory = 'gelap' | 'begal' | 'geng_motor' | 'sepi'
 export type DangerLevel = 'low' | 'medium' | 'high'
 export type HavenType = 'minimarket_24h' | 'spbu' | 'pos_polisi'
+

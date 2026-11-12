@@ -90,3 +90,4 @@ export const HAVEN_TYPES = {
     badgeClass: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
   }
 }
+

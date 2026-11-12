@@ -43,3 +43,4 @@ export function formatDateTime(dateInput: string | Date): string {
     minute: '2-digit'
   }) + ' WIB'
 }
+

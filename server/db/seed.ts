@@ -52,3 +52,4 @@ async function runSeed() {
 }
 
 runSeed()
+

@@ -119,3 +119,4 @@ export const initialSafeHavens: SafeHaven[] = [
     longitude: 106.8335
   }
 ]
+

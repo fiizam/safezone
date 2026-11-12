@@ -147,3 +147,4 @@ pnpm preview
 4. Di bagian **Environment Variables**, tambahkan:
    - `DATABASE_URL`: URL PostgreSQL dari Neon Anda.
 5. Klik **Deploy**. Proyek SafeZone Anda akan aktif dan terdistribusi secara global di Vercel Edge Network.
+
