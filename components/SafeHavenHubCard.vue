@@ -1,120 +1,174 @@
 <template>
-  <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-3">
+  <article class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
+    <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-        </div>
-        <h3 class="font-bold text-sm tracking-tight text-slate-900">Jaringan Safe Haven</h3>
+        <h2 class="font-bold text-sm sm:text-base tracking-tight text-slate-900">Pos Aman 24 Jam</h2>
+        <InfoPopover
+          title="Pos Aman (Safe Haven)"
+          content="Daftar Kantor Polisi, SPBU, dan Minimarket 24 jam yang terang serta ramai untuk menepi saat darurat. Diurutkan otomatis dari jarak terdekat dengan posisi Anda."
+          label="Penjelasan Pos Aman 24 Jam"
+        />
       </div>
-      <span class="text-xs font-semibold text-slate-500">{{ havens.length }} Total Siaga</span>
+
+      <div v-if="sortedHavens.length > 1" class="flex items-center gap-1">
+        <button
+          type="button"
+          @click="prevHaven"
+          aria-label="Pos sebelumnya"
+          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors"
+        >
+          ‹
+        </button>
+        <span class="text-xs font-semibold text-slate-600 px-1.5 tabular-nums">
+          {{ selectedIndex + 1 }}/{{ sortedHavens.length }}
+        </span>
+        <button
+          type="button"
+          @click="nextHaven"
+          aria-label="Pos berikutnya"
+          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors"
+        >
+          ›
+        </button>
+      </div>
     </div>
 
-    <!-- 3 Stat Tiles in a Row (Matching Dribbble 3 boxes) -->
-    <div class="grid grid-cols-3 gap-2.5 my-2">
-      <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
-        <div class="text-xl font-black text-slate-900">{{ havens.length }}</div>
-        <div class="text-[10px] text-slate-500 font-medium mt-0.5">Pos Berlindung</div>
-      </div>
-      <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
-        <div class="text-xl font-black text-emerald-600">100%</div>
-        <div class="text-[10px] text-slate-500 font-medium mt-0.5">Buka 24 Jam</div>
-      </div>
-      <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
-        <div class="text-xl font-black text-slate-900">450m</div>
-        <div class="text-[10px] text-slate-500 font-medium mt-0.5">Radius Dekat</div>
-      </div>
-    </div>
-
-    <!-- Center Spotlight Safe Haven Card (Matching Truck Showcase) -->
-    <div class="my-3 p-4 rounded-2xl bg-gradient-to-b from-slate-50 to-emerald-50/40 border border-slate-200/80 flex flex-col justify-between">
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-[11px] font-bold text-emerald-800">SPBU & Minimarket Terdekat</span>
-        </div>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-          Aktif 24 Jam
+    <div
+      v-if="currentItem"
+      class="my-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col justify-between gap-3"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          {{ havenTypeLabel(currentItem.haven.type) }}
+        </span>
+        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 tabular-nums">
+          {{ currentItem.distanceLabel }} · ~{{ currentItem.motorMinutes }} mnt
         </span>
       </div>
 
-      <div class="py-2">
-        <h4 class="font-extrabold text-sm text-slate-900 mb-1">
-          {{ currentHaven?.name || 'Indomaret Point Dipatiukur 24 Jam' }}
-        </h4>
-        <p class="text-xs text-slate-600 leading-relaxed">
-          {{ currentHaven?.address || 'Jl. Dipatiukur No. 80 (Area Terang, Ramai Mahasiswa & CCTV)' }}
+      <div>
+        <button
+          type="button"
+          @click="$emit('focusHaven', currentItem.haven)"
+          class="text-left font-extrabold text-sm sm:text-base text-slate-900 hover:text-emerald-700 transition-colors"
+        >
+          {{ currentItem.haven.name }}
+        </button>
+        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+          {{ currentItem.haven.address }}
         </p>
       </div>
 
-      <!-- Quick Navigate Button -->
-      <a
-        v-if="currentHaven"
-        :href="`https://www.google.com/maps/dir/?api=1&destination=${currentHaven.latitude},${currentHaven.longitude}`"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="mt-2 w-full text-center py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-98"
-      >
-        <span>Navigasi Rute Cepat ke Titik Aman</span>
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </a>
-    </div>
-
-    <!-- Bottom Officer Contact Row (Matching Driver Profile in Dribbble) -->
-    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-          👮‍♂️
-        </div>
-        <div>
-          <div class="text-xs font-bold text-slate-900">Polsek Coblong & Pos Ronda</div>
-          <div class="text-[10px] text-emerald-600 font-semibold">Siaga Darurat 110</div>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-1.5">
+      <div class="pt-1 grid grid-cols-2 gap-2">
         <button
-          @click="$emit('focusHaven', currentHaven)"
-          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
-          title="Fokus di Peta"
+          type="button"
+          @click="$emit('drawRoute', currentItem.haven)"
+          :class="[
+            'min-h-[40px] py-2 px-3 rounded-xl font-bold text-xs transition-colors',
+            activeRouteHavenId === currentItem.haven.id
+              ? 'bg-slate-900 text-white'
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+          ]"
         >
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
-          </svg>
+          {{ activeRouteHavenId === currentItem.haven.id ? 'Tutup Rute Peta' : 'Rute di Peta' }}
         </button>
+
         <a
-          href="tel:110"
-          class="w-8 h-8 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition-colors"
-          title="Panggil Darurat"
+          :href="`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${currentItem.haven.latitude},${currentItem.haven.longitude}&travelmode=two-wheeler`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="min-h-[40px] py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-xs transition-colors flex items-center justify-center"
         >
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
+          Google Maps
         </a>
       </div>
     </div>
-  </div>
+
+    <div
+      v-else
+      class="my-4 p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center text-xs text-slate-600"
+    >
+      Belum ada Pos Aman terdaftar di wilayah ini.
+    </div>
+
+    <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+      <span class="text-slate-600 font-medium">Panggilan Darurat Polisi</span>
+      <a
+        href="tel:110"
+        class="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-colors"
+      >
+        Hubungi 110
+      </a>
+    </div>
+  </article>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { SafeHaven } from '~/server/db/schema'
+import {
+  calculateDistanceMeters,
+  formatDistance,
+  estimateMotorMinutes,
+  type Coordinates
+} from '~/utils/geo'
 
 const props = defineProps<{
   havens: SafeHaven[]
+  userCoords: Coordinates
+  activeRouteHavenId?: number | null
 }>()
 
 defineEmits<{
-  (e: 'focusHaven', haven: SafeHaven | undefined): void
+  (e: 'focusHaven', haven: SafeHaven): void
+  (e: 'drawRoute', haven: SafeHaven): void
 }>()
 
-const currentHaven = computed(() => {
-  return props.havens && props.havens.length > 0 ? props.havens[0] : undefined
+const selectedIndex = ref(0)
+
+const sortedHavens = computed(() => {
+  return [...props.havens]
+    .map((haven) => {
+      const meters = calculateDistanceMeters(props.userCoords, {
+        lat: haven.latitude,
+        lng: haven.longitude
+      })
+      return {
+        haven,
+        meters,
+        distanceLabel: formatDistance(meters),
+        motorMinutes: estimateMotorMinutes(meters)
+      }
+    })
+    .sort((a, b) => a.meters - b.meters)
 })
+
+watch(
+  () => props.havens,
+  () => {
+    selectedIndex.value = 0
+  }
+)
+
+const currentItem = computed(() => {
+  return sortedHavens.value[selectedIndex.value] || null
+})
+
+function havenTypeLabel(type: string): string {
+  if (type === 'pos_polisi') return 'Kantor Polisi'
+  if (type === 'spbu') return 'SPBU 24 Jam'
+  return 'Minimarket 24 Jam'
+}
+
+function prevHaven() {
+  if (!sortedHavens.value.length) return
+  selectedIndex.value =
+    (selectedIndex.value - 1 + sortedHavens.value.length) % sortedHavens.value.length
+}
+
+function nextHaven() {
+  if (!sortedHavens.value.length) return
+  selectedIndex.value = (selectedIndex.value + 1) % sortedHavens.value.length
+}
 </script>
