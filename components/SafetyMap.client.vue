@@ -1,133 +1,180 @@
 <template>
-  <div class="relative w-full h-[380px] sm:h-[400px] rounded-3xl overflow-hidden border border-slate-200/80 shadow-card bg-[#0b0f19]">
-    <!-- Map Canvas -->
-    <div ref="mapContainer" class="w-full h-full z-0"></div>
+  <div class="relative w-full h-[380px] sm:h-[420px] rounded-3xl overflow-hidden border border-slate-200/80 shadow-card bg-[#0b0f19]">
+    <div ref="mapContainer" class="w-full h-full z-0" role="region" aria-label="Peta interaktif titik rawan dan tempat berlindung 24 jam"></div>
 
-    <!-- Floating Top-Left Search & Filter Bar (Matching ArgoLogistics Dribbble) -->
-    <div class="absolute top-4 left-4 z-[400] flex flex-wrap items-center gap-2.5">
-      <!-- Search Input Pill -->
+    <div class="absolute top-3.5 left-3.5 right-16 sm:right-auto z-[400] flex flex-wrap items-center gap-2">
       <div class="relative flex items-center bg-white/95 backdrop-blur-md rounded-2xl px-3.5 py-2 border border-slate-200/90 shadow-md">
-        <svg class="w-4 h-4 text-slate-400 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <label for="map-search-input" class="sr-only">Cari jalan atau lokasi</label>
+        <svg aria-hidden="true" class="w-4 h-4 text-slate-500 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input
+          id="map-search-input"
           v-model="searchQuery"
-          type="text"
-          placeholder="Cari jalan, begal, lokasi..."
-          class="bg-transparent text-xs text-slate-900 placeholder-slate-400 focus:outline-none w-36 sm:w-56 font-medium"
+          type="search"
+          placeholder="Cari nama jalan atau pos..."
+          class="bg-transparent text-xs text-slate-900 placeholder-slate-500 focus:outline-none w-40 sm:w-56 font-medium"
         />
         <button
           v-if="searchQuery"
+          type="button"
           @click="searchQuery = ''"
-          class="text-slate-400 hover:text-slate-600 text-xs ml-1"
+          aria-label="Hapus pencarian"
+          class="text-slate-500 hover:text-slate-800 text-xs ml-1.5 px-1 font-bold"
         >
-          ✕
+          ×
         </button>
       </div>
 
-      <!-- Category Filter Dropdown Pill -->
-      <div class="relative">
-        <select
-          :value="activeCategory"
-          @change="$emit('update:category', ($event.target as HTMLSelectElement).value)"
-          class="appearance-none bg-white/95 backdrop-blur-md rounded-2xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-800 border border-slate-200/90 shadow-md cursor-pointer focus:outline-none"
-        >
-          <option value="all">Kategori: Semua</option>
-          <option value="begal">🔴 Begal & Kejahatan</option>
-          <option value="geng_motor">🟠 Geng Motor / Tawuran</option>
-          <option value="gelap">🟡 PJU Mati / Gelap</option>
-          <option value="sepi">⚪ Jalan Sepi</option>
-        </select>
-        <svg class="w-3.5 h-3.5 text-slate-500 absolute right-3 top-3 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </div>
+      <button
+        v-if="activeCategory !== 'all'"
+        type="button"
+        @click="$emit('update:category', 'all')"
+        class="bg-slate-900/95 hover:bg-slate-800 text-white backdrop-blur-md rounded-2xl px-3 py-2 text-xs font-semibold border border-slate-700 shadow-md flex items-center gap-1.5 transition-colors"
+        title="Hapus filter kategori"
+      >
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>Filter: {{ categoryName(activeCategory) }}</span>
+        <span class="text-slate-300 font-bold ml-0.5">×</span>
+      </button>
     </div>
 
-    <!-- Floating Top-Right Map Controls -->
-    <div class="absolute top-4 right-4 z-[400] flex items-center gap-2">
-      <!-- Geolocation Button -->
+    <div class="absolute top-3.5 right-3.5 z-[400] flex flex-col sm:flex-row items-center gap-2">
       <button
+        type="button"
         @click="locateUser"
         :disabled="isLocating"
-        class="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md text-slate-700 hover:text-slate-900 border border-slate-200/90 shadow-md flex items-center justify-center transition-all active:scale-95"
-        title="Lokasi GPS Saya"
+        aria-label="Temukan posisi GPS saya"
+        title="Temukan posisi GPS saya"
+        class="w-11 h-11 rounded-2xl bg-white/95 backdrop-blur-md text-slate-800 hover:text-slate-950 hover:bg-white border border-slate-200/90 shadow-md flex items-center justify-center transition-colors"
       >
         <span v-if="isLocating" class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-        <svg v-else class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <svg v-else aria-hidden="true" class="w-4 h-4 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <polygon points="3 11 22 2 13 21 11 13 3 11" />
         </svg>
       </button>
 
-      <!-- Toggle Safe Havens -->
       <button
-        @click="toggleHavens"
-        :class="[
-          'w-10 h-10 rounded-2xl border shadow-md flex items-center justify-center transition-all active:scale-95',
-          showHavensLocal
-            ? 'bg-emerald-500 text-white border-emerald-600'
-            : 'bg-white/95 backdrop-blur-md text-slate-400 border-slate-200/90 hover:text-slate-700'
-        ]"
-        :title="showHavensLocal ? 'Sembunyikan Safe Havens' : 'Tampilkan Safe Havens'"
+        type="button"
+        @click="routeToNearestHaven"
+        aria-label="Tampilkan rute ke Pos Aman terdekat"
+        title="Rute ke Pos Aman terdekat"
+        class="h-11 px-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-700 shadow-md flex items-center gap-1.5 text-xs font-bold transition-colors"
       >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
+        <span class="w-2 h-2 rounded-full bg-white"></span>
+        <span class="hidden md:inline">Rute Pos Terdekat</span>
       </button>
     </div>
 
-    <!-- Floating Bottom-Right Clean Vertical Zoom Controls -->
-    <div class="absolute bottom-4 right-4 z-[400] flex flex-col bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
+    <div
+      v-if="activeRouteInfo"
+      class="absolute bottom-3.5 left-3.5 right-16 sm:right-auto sm:max-w-md z-[400] bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-emerald-300 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 mb-0.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Rute Aman Aktif</span>
+        </div>
+        <p class="text-xs font-bold text-slate-900 truncate">{{ activeRouteInfo.haven.name }}</p>
+        <p class="text-[11px] text-slate-600 font-medium mt-0.5">
+          Jarak: <strong class="text-slate-900">{{ activeRouteInfo.distanceLabel }}</strong>
+          · Est. motor <strong class="text-slate-900">{{ activeRouteInfo.motorMinutes }} mnt</strong>
+          (jalan kaki {{ activeRouteInfo.walkMinutes }} mnt)
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <a
+          :href="`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${activeRouteInfo.haven.latitude},${activeRouteInfo.haven.longitude}&travelmode=two-wheeler`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+        >
+          Google Maps
+        </a>
+        <button
+          type="button"
+          @click="$emit('clearRoute')"
+          class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+          aria-label="Tutup tampilan rute di peta"
+        >
+          Tutup
+        </button>
+      </div>
+    </div>
+
+    <div class="absolute bottom-3.5 right-3.5 z-[400] flex flex-col bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
       <button
+        type="button"
         @click="zoomIn"
-        class="w-9 h-9 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors border-b border-slate-100 font-bold text-base"
-        title="Perbesar"
+        aria-label="Perbesar peta"
+        title="Perbesar peta"
+        class="w-11 h-11 flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-slate-100 transition-colors border-b border-slate-200 font-bold text-base"
       >
         +
       </button>
       <button
+        type="button"
         @click="zoomOut"
-        class="w-9 h-9 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors font-bold text-base"
-        title="Perkecil"
+        aria-label="Perkecil peta"
+        title="Perkecil peta"
+        class="w-11 h-11 flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-slate-100 transition-colors font-bold text-base"
       >
         −
       </button>
     </div>
 
-    <!-- Location Picking Indicator Notice -->
     <div
       v-if="isPickingLocation"
-      class="absolute top-16 left-1/2 -translate-x-1/2 z-[400] bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold animate-bounce"
+      class="absolute top-16 left-1/2 -translate-x-1/2 z-[400] bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold border border-slate-700"
+      role="status"
     >
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-      <span>Klik di mana saja pada peta untuk menentukan titik koordinat</span>
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span>Klik pada peta untuk memilih titik koordinat laporan</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import type { Report, SafeHaven } from '~/server/db/schema'
 import { formatRelativeTime } from '~/utils/time'
+import {
+  calculateDistanceMeters,
+  formatDistance,
+  estimateMotorMinutes,
+  estimateWalkMinutes,
+  type Coordinates
+} from '~/utils/geo'
 
 const props = withDefaults(
   defineProps<{
     reports: Report[]
     safeHavens: SafeHaven[]
     activeCategory?: string
+    mapFocus?: 'all' | 'reports' | 'havens'
     isPickingLocation?: boolean
+    userCoords: Coordinates
+    activeRouteHaven?: SafeHaven | null
   }>(),
   {
     activeCategory: 'all',
-    isPickingLocation: false
+    mapFocus: 'all',
+    isPickingLocation: false,
+    activeRouteHaven: null
   }
 )
 
 const emit = defineEmits<{
-  (e: 'selectLocation', payload: { lat: number; lng: number }): void
+  (e: 'selectLocation', payload: Coordinates): void
   (e: 'upvote', reportId: number): void
   (e: 'update:category', category: string): void
+  (e: 'updateUserCoords', coords: Coordinates, isLiveGps: boolean): void
+  (e: 'drawRoute', haven: SafeHaven): void
+  (e: 'clearRoute'): void
 }>()
 
 const mapContainer = ref<HTMLElement | null>(null)
@@ -136,21 +183,48 @@ let map: any = null
 let L: any = null
 let reportsLayerGroup: any = null
 let havensLayerGroup: any = null
+let routeLayerGroup: any = null
 let userMarker: any = null
 let pickerMarker: any = null
 
 const isLocating = ref(false)
-const showHavensLocal = ref(true)
 
-// Default center: Area Bandung / Jabodetabek
-const DEFAULT_CENTER: [number, number] = [-6.8925, 107.6186]
-const DEFAULT_ZOOM = 14
+function categoryName(cat: string): string {
+  const names: Record<string, string> = {
+    begal: 'Begal & Kejahatan',
+    geng_motor: 'Geng Motor',
+    gelap: 'Lampu Mati / Gelap',
+    sepi: 'Jalan Sepi'
+  }
+  return names[cat] || cat
+}
+
+const activeRouteInfo = computed(() => {
+  if (!props.activeRouteHaven) return null
+  const meters = calculateDistanceMeters(props.userCoords, {
+    lat: props.activeRouteHaven.latitude,
+    lng: props.activeRouteHaven.longitude
+  })
+  return {
+    haven: props.activeRouteHaven,
+    meters,
+    distanceLabel: formatDistance(meters),
+    motorMinutes: estimateMotorMinutes(meters),
+    walkMinutes: estimateWalkMinutes(meters)
+  }
+})
 
 onMounted(async () => {
   if (process.client) {
     L = await import('leaflet')
     ;(window as any).handleMapUpvote = (id: number) => {
       emit('upvote', id)
+    }
+    ;(window as any).handleMapRouteHaven = (havenId: number) => {
+      const target = props.safeHavens.find(h => h.id === havenId)
+      if (target) {
+        emit('drawRoute', target)
+      }
     }
 
     initMap()
@@ -164,6 +238,7 @@ onBeforeUnmount(() => {
   }
   if (process.client) {
     delete (window as any).handleMapUpvote
+    delete (window as any).handleMapRouteHaven
   }
 })
 
@@ -171,12 +246,11 @@ function initMap() {
   if (!mapContainer.value || !L) return
 
   map = L.map(mapContainer.value, {
-    center: DEFAULT_CENTER,
-    zoom: DEFAULT_ZOOM,
+    center: [props.userCoords.lat, props.userCoords.lng],
+    zoom: 13,
     zoomControl: false
   })
 
-  // Dark vector styling matching the ArgoLogistics Dribbble map
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors',
     subdomains: 'abc',
@@ -184,16 +258,21 @@ function initMap() {
     className: 'argologistics-style-tiles'
   }).addTo(map)
 
+  routeLayerGroup = L.layerGroup().addTo(map)
   reportsLayerGroup = L.layerGroup().addTo(map)
   havensLayerGroup = L.layerGroup().addTo(map)
 
   map.on('click', (e: any) => {
     const { lat, lng } = e.latlng
-    setPickerLocation(lat, lng)
-    emit('selectLocation', { lat, lng })
+    if (props.isPickingLocation) {
+      setPickerLocation(lat, lng)
+      emit('selectLocation', { lat, lng })
+    }
   })
 
-  renderMarkers()
+  renderUserMarker()
+  renderMarkers(true)
+  renderRouteLine()
 }
 
 function zoomIn() {
@@ -204,165 +283,283 @@ function zoomOut() {
   if (map) map.zoomOut()
 }
 
-// Custom White Stem Pin Icons (Matching Dribbble ArgoLogistics Pin Markers)
-function createDribbbleDangerPin(isHigh: boolean) {
+// 1. Animated User GPS Sonar Beacon (Mapbox / Uber Driver style)
+function createUserPin() {
   return L.divIcon({
-    className: 'dribbble-map-pin',
+    className: 'sz-custom-pin',
     html: `
-      <div class="relative flex flex-col items-center -translate-x-1/2 -translate-y-full cursor-pointer group">
-        <div class="w-8 h-8 rounded-full bg-white shadow-lg border-2 border-rose-500 flex items-center justify-center transition-transform group-hover:scale-110">
-          <div class="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center text-white">
-            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            </svg>
-          </div>
+      <div class="sz-user-beacon" title="Titik Posisi Anda (Geser untuk ubah titik awal)">
+        <span class="sz-sonar-ring"></span>
+        <span class="sz-sonar-ring sz-sonar-delay"></span>
+        <div class="sz-user-core">
+          <span class="sz-user-dot"></span>
         </div>
-        <div class="w-0.5 h-3 bg-white shadow-sm"></div>
-        <div class="w-2 h-1 bg-black/40 rounded-full blur-[1px]"></div>
       </div>
     `,
-    iconSize: [32, 44],
-    iconAnchor: [16, 44],
-    popupAnchor: [0, -44]
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -18]
   })
 }
 
-function createDribbbleWarningPin() {
+// 2. Animated High-Danger Tactical Radar Pin (Waze / Citizen App style)
+function createDangerPin(category: string) {
+  const isGang = category === 'geng_motor'
+  const svgIcon = isGang
+    ? `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+       </svg>`
+    : `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+         <line x1="12" y1="9" x2="12" y2="13"/>
+         <line x1="12" y1="17" x2="12.01" y2="17"/>
+       </svg>`
+
   return L.divIcon({
-    className: 'dribbble-map-pin',
+    className: 'sz-custom-pin',
     html: `
-      <div class="relative flex flex-col items-center -translate-x-1/2 -translate-y-full cursor-pointer group">
-        <div class="w-7 h-7 rounded-full bg-white shadow-lg border-2 border-amber-500 flex items-center justify-center transition-transform group-hover:scale-110">
-          <div class="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-white">
-            <svg class="w-2.5 h-2.5 fill-white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
+      <div class="sz-pin-wrapper sz-pin-danger group">
+        <span class="sz-danger-pulse"></span>
+        <span class="sz-danger-pulse sz-pulse-delay"></span>
+        <div class="sz-pin-body sz-body-danger">
+          <div class="sz-pin-inner-ring">
+            ${svgIcon}
           </div>
         </div>
-        <div class="w-0.5 h-2.5 bg-white shadow-sm"></div>
-        <div class="w-1.5 h-1 bg-black/40 rounded-full blur-[1px]"></div>
+        <div class="sz-pin-tip sz-tip-danger"></div>
+        <div class="sz-pin-shadow"></div>
       </div>
     `,
-    iconSize: [28, 38],
-    iconAnchor: [14, 38],
-    popupAnchor: [0, -38]
+    iconSize: [44, 52],
+    iconAnchor: [22, 48],
+    popupAnchor: [0, -46]
   })
 }
 
-function createDribbbleHavenPin() {
+// 3. Animated Streetlight / Caution Beacon Pin (Amber Gold Glow)
+function createWarningPin(category: string) {
+  const isDarkRoad = category === 'gelap'
+  const svgIcon = isDarkRoad
+    ? `<svg class="w-4 h-4 text-slate-950 sz-flicker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+         <path d="M9 18h6"/>
+         <path d="M10 22h4"/>
+         <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+       </svg>`
+    : `<svg class="w-4 h-4 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+       </svg>`
+
   return L.divIcon({
-    className: 'dribbble-map-pin',
+    className: 'sz-custom-pin',
     html: `
-      <div class="relative flex flex-col items-center -translate-x-1/2 -translate-y-full cursor-pointer group">
-        <div class="w-8 h-8 rounded-full bg-white shadow-lg border-2 border-emerald-500 flex items-center justify-center transition-transform group-hover:scale-110">
-          <div class="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
+      <div class="sz-pin-wrapper sz-pin-warning group">
+        <span class="sz-warning-halo"></span>
+        <div class="sz-pin-body sz-body-warning">
+          <div class="sz-pin-inner-amber">
+            ${svgIcon}
           </div>
         </div>
-        <div class="w-0.5 h-3 bg-white shadow-sm"></div>
-        <div class="w-2 h-1 bg-black/40 rounded-full blur-[1px]"></div>
+        <div class="sz-pin-tip sz-tip-warning"></div>
+        <div class="sz-pin-shadow"></div>
       </div>
     `,
-    iconSize: [32, 44],
-    iconAnchor: [16, 44],
-    popupAnchor: [0, -44]
+    iconSize: [40, 48],
+    iconAnchor: [20, 44],
+    popupAnchor: [0, -42]
   })
 }
 
-function renderMarkers() {
+// 4. Animated 24h Safe Haven Shield Pin (Specific icon for Police / SPBU / Minimarket)
+function createHavenPin(type: string) {
+  let svgIcon = ''
+  if (type === 'pos_polisi') {
+    svgIcon = `
+      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>`
+  } else if (type === 'spbu') {
+    svgIcon = `
+      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="22" x2="15" y2="22"/>
+        <line x1="4" y1="9" x2="14" y2="9"/>
+        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/>
+        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/>
+      </svg>`
+  } else {
+    svgIcon = `
+      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>`
+  }
+
+  return L.divIcon({
+    className: 'sz-custom-pin',
+    html: `
+      <div class="sz-pin-wrapper sz-pin-haven group">
+        <span class="sz-haven-glow"></span>
+        <div class="sz-pin-body sz-body-haven">
+          <span class="sz-live-badge"></span>
+          <div class="sz-pin-inner-ring">
+            ${svgIcon}
+          </div>
+        </div>
+        <div class="sz-pin-tip sz-tip-haven"></div>
+        <div class="sz-pin-shadow"></div>
+      </div>
+    `,
+    iconSize: [44, 52],
+    iconAnchor: [22, 48],
+    popupAnchor: [0, -46]
+  })
+}
+
+function renderUserMarker() {
+  if (!map || !L) return
+
+  if (userMarker) {
+    userMarker.setLatLng([props.userCoords.lat, props.userCoords.lng])
+  } else {
+    userMarker = L.marker([props.userCoords.lat, props.userCoords.lng], {
+      icon: createUserPin(),
+      draggable: true
+    }).addTo(map)
+
+    userMarker.bindPopup(`
+      <div class="p-3 bg-white text-slate-900 max-w-[220px]">
+        <div class="text-xs font-bold text-slate-900 mb-0.5">Titik Posisi Anda</div>
+        <p class="text-[11px] text-slate-600 leading-snug">Geser pin biru ini atau klik tombol GPS di kanan atas untuk memperbarui posisi awal rute.</p>
+      </div>
+    `, { className: 'safezone-light-popup' })
+
+    userMarker.on('dragend', (e: any) => {
+      const pos = e.target.getLatLng()
+      emit('updateUserCoords', { lat: pos.lat, lng: pos.lng }, false)
+    })
+  }
+}
+
+function renderMarkers(shouldFitBounds = false) {
   if (!map || !L || !reportsLayerGroup || !havensLayerGroup) return
 
   reportsLayerGroup.clearLayers()
   havensLayerGroup.clearLayers()
 
   const q = searchQuery.value.toLowerCase().trim()
+  const showReports = props.mapFocus === 'all' || props.mapFocus === 'reports'
+  const showHavens = props.mapFocus === 'all' || props.mapFocus === 'havens'
 
-  const filteredReports = props.reports.filter((r) => {
-    const matchesCat = !props.activeCategory || props.activeCategory === 'all' || r.category === props.activeCategory
-    const matchesSearch = !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)
-    return matchesCat && matchesSearch
-  })
+  const visiblePoints: [number, number][] = []
 
-  filteredReports.forEach((report) => {
-    const isRedPin = report.category === 'begal' || report.category === 'geng_motor'
-    const isHighDanger = report.dangerLevel === 'high'
-    const icon = isRedPin ? createDribbbleDangerPin(isHighDanger) : createDribbbleWarningPin()
-    const marker = L.marker([report.latitude, report.longitude], { icon })
-
-    const dangerBadgeClass = {
-      high: 'bg-rose-50 text-rose-700 border-rose-200',
-      medium: 'bg-amber-50 text-amber-800 border-amber-200',
-      low: 'bg-slate-100 text-slate-700 border-slate-200'
-    }[report.dangerLevel] || 'bg-slate-100 text-slate-700'
-
-    const popupHtml = `
-      <div class="p-3.5 bg-white text-slate-900 max-w-[260px]">
-        <div class="flex items-center justify-between gap-2 mb-1.5">
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${dangerBadgeClass}">
-            ${report.dangerLevel.toUpperCase()}
-          </span>
-          <span class="text-[10px] text-slate-400">
-            ${formatRelativeTime(report.createdAt)}
-          </span>
-        </div>
-        <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${report.title}</h4>
-        <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed line-clamp-2">${report.description}</p>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-          <button
-            onclick="window.handleMapUpvote(${report.id})"
-            class="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
-          >
-            <span>▲ Validasi</span>
-            <span class="text-slate-900">${report.upvotes}</span>
-          </button>
-          <a
-            href="https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-[11px] font-medium text-emerald-700 hover:underline"
-          >
-            Rute
-          </a>
-        </div>
-      </div>
-    `
-
-    marker.bindPopup(popupHtml, {
-      className: 'safezone-light-popup',
-      maxWidth: 280
+  if (showReports) {
+    const filteredReports = props.reports.filter((r) => {
+      const matchesCat = !props.activeCategory || props.activeCategory === 'all' || r.category === props.activeCategory
+      const matchesSearch = !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)
+      return matchesCat && matchesSearch
     })
 
-    reportsLayerGroup.addLayer(marker)
-  })
+    filteredReports.forEach((report) => {
+      visiblePoints.push([report.latitude, report.longitude])
+      const isRedPin = report.category === 'begal' || report.category === 'geng_motor'
+      const icon = isRedPin ? createDangerPin(report.category) : createWarningPin(report.category)
+      const marker = L.marker([report.latitude, report.longitude], { icon })
 
-  if (showHavensLocal.value) {
+      const dangerLabel = {
+        high: 'Bahaya Tinggi',
+        medium: 'Waspada',
+        low: 'Risiko Rendah'
+      }[report.dangerLevel] || 'Waspada'
+
+      const dangerBadgeClass = {
+        high: 'bg-rose-50 text-rose-700 border-rose-200',
+        medium: 'bg-amber-50 text-amber-800 border-amber-200',
+        low: 'bg-slate-100 text-slate-700 border-slate-200'
+      }[report.dangerLevel] || 'bg-slate-100 text-slate-700'
+
+      const popupHtml = `
+        <div class="p-3.5 bg-white text-slate-900 max-w-[260px]">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${dangerBadgeClass}">
+              ${dangerLabel}
+            </span>
+            <span class="text-[10px] text-slate-500">
+              ${formatRelativeTime(report.createdAt)}
+            </span>
+          </div>
+          <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${report.title}</h4>
+          <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${report.description}</p>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onclick="window.handleMapUpvote(${report.id})"
+              class="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+            >
+              <span>Validasi Warga:</span>
+              <span class="text-slate-900">${report.upvotes}</span>
+            </button>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-[11px] font-semibold text-slate-700 hover:text-slate-900 underline"
+            >
+              Cek Lokasi
+            </a>
+          </div>
+        </div>
+      `
+
+      marker.bindPopup(popupHtml, {
+        className: 'safezone-light-popup',
+        maxWidth: 280
+      })
+
+      reportsLayerGroup.addLayer(marker)
+    })
+  }
+
+  if (showHavens) {
     const filteredHavens = props.safeHavens.filter((h) => {
       return !q || h.name.toLowerCase().includes(q) || h.address.toLowerCase().includes(q)
     })
 
     filteredHavens.forEach((haven) => {
-      const icon = createDribbbleHavenPin()
+      visiblePoints.push([haven.latitude, haven.longitude])
+      const icon = createHavenPin(haven.type)
       const marker = L.marker([haven.latitude, haven.longitude], { icon })
+      const distMeters = calculateDistanceMeters(props.userCoords, {
+        lat: haven.latitude,
+        lng: haven.longitude
+      })
 
       const havenPopupHtml = `
         <div class="p-3.5 bg-white text-slate-900 max-w-[260px]">
-          <div class="flex items-center gap-2 mb-1.5">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-200">
-              🛡️ Safe Haven 24 Jam
+              Pos Aman 24 Jam
+            </span>
+            <span class="text-[10px] font-semibold text-slate-600">
+              ${formatDistance(distMeters)}
             </span>
           </div>
           <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${haven.name}</h4>
           <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${haven.address}</p>
-          <div class="pt-2 border-t border-slate-100 flex justify-end">
+          <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
+            <button
+              type="button"
+              onclick="window.handleMapRouteHaven(${haven.id})"
+              class="flex-1 text-center text-xs font-bold px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+            >
+              Garis Rute Peta
+            </button>
             <a
               href="https://www.google.com/maps/dir/?api=1&destination=${haven.latitude},${haven.longitude}"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-full text-center text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+              class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800"
             >
-              Navigasi Cepat
+              Maps
             </a>
           </div>
         </div>
@@ -375,6 +572,64 @@ function renderMarkers() {
 
       havensLayerGroup.addLayer(marker)
     })
+  }
+
+  if (shouldFitBounds && visiblePoints.length > 0 && !props.activeRouteHaven) {
+    if (visiblePoints.length === 1) {
+      map.flyTo(visiblePoints[0], 15, { duration: 0.9 })
+    } else {
+      const bounds = L.latLngBounds(visiblePoints)
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
+    }
+  }
+}
+
+function renderRouteLine() {
+  if (!map || !L || !routeLayerGroup) return
+
+  routeLayerGroup.clearLayers()
+  if (!props.activeRouteHaven) return
+
+  const start: [number, number] = [props.userCoords.lat, props.userCoords.lng]
+  const end: [number, number] = [props.activeRouteHaven.latitude, props.activeRouteHaven.longitude]
+
+  const outerLine = L.polyline([start, end], {
+    color: '#10b981',
+    weight: 8,
+    opacity: 0.28,
+    lineCap: 'round'
+  })
+
+  const innerLine = L.polyline([start, end], {
+    color: '#34d399',
+    weight: 3.5,
+    opacity: 0.95,
+    dashArray: '8, 8',
+    lineCap: 'round'
+  })
+
+  routeLayerGroup.addLayer(outerLine)
+  routeLayerGroup.addLayer(innerLine)
+
+  const bounds = L.latLngBounds([start, end])
+  map.fitBounds(bounds, { padding: [55, 55], maxZoom: 16 })
+}
+
+function routeToNearestHaven() {
+  if (!props.safeHavens.length) return
+  let nearest = props.safeHavens[0]
+  let minDistance = Infinity
+
+  for (const h of props.safeHavens) {
+    const d = calculateDistanceMeters(props.userCoords, { lat: h.latitude, lng: h.longitude })
+    if (d < minDistance) {
+      minDistance = d
+      nearest = h
+    }
+  }
+
+  if (nearest) {
+    emit('drawRoute', nearest)
   }
 }
 
@@ -401,40 +656,66 @@ function locateUser() {
       isLocating.value = false
       const lat = pos.coords.latitude
       const lng = pos.coords.longitude
+      emit('updateUserCoords', { lat, lng }, true)
       if (map) {
-        map.flyTo([lat, lng], 15, { duration: 1.2 })
+        map.flyTo([lat, lng], 15, { duration: 1.0 })
       }
     },
     () => {
       isLocating.value = false
-      alert('Gagal mengambil lokasi GPS.')
     },
     { enableHighAccuracy: true, timeout: 8000 }
   )
 }
 
-function toggleHavens() {
-  showHavensLocal.value = !showHavensLocal.value
-  renderMarkers()
-}
-
 function flyTo(lat: number, lng: number, zoom = 15) {
   if (!map) return
-  map.flyTo([lat, lng], zoom, { duration: 1.2 })
+  map.flyTo([lat, lng], zoom, { duration: 1.0 })
 }
 
-watch([() => props.reports, () => props.safeHavens, () => props.activeCategory, searchQuery], () => {
-  renderMarkers()
-}, { deep: true })
+watch(
+  [() => props.activeCategory, () => props.mapFocus],
+  () => {
+    renderMarkers(true)
+  }
+)
+
+watch(
+  [() => props.reports, () => props.safeHavens, searchQuery],
+  () => {
+    renderMarkers(false)
+  },
+  { deep: true }
+)
+
+watch(
+  () => props.userCoords,
+  () => {
+    renderUserMarker()
+    renderMarkers(false)
+    if (props.activeRouteHaven) {
+      renderRouteLine()
+    }
+  },
+  { deep: true }
+)
+
+watch(
+  () => props.activeRouteHaven,
+  () => {
+    renderRouteLine()
+  }
+)
 
 defineExpose({
   flyTo,
-  locateUser
+  locateUser,
+  routeToNearestHaven,
+  fitToVisibleMarkers: () => renderMarkers(true)
 })
 </script>
 
 <style>
-/* Exact styling matching ArgoLogistics Dark Map with Cyan Water and Mint Highlights */
 .argologistics-style-tiles {
   filter: invert(100%) hue-rotate(170deg) brightness(85%) contrast(120%) saturate(140%);
 }
@@ -445,7 +726,7 @@ defineExpose({
   border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
   padding: 0 !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12) !important;
 }
 
 .safezone-light-popup .leaflet-popup-tip {
@@ -453,8 +734,282 @@ defineExpose({
   border: 1px solid #e2e8f0 !important;
 }
 
-.dribbble-map-pin {
+.sz-custom-pin {
   background: transparent !important;
   border: none !important;
+}
+
+/* Base Pin Wrapper with Hover Lift */
+.sz-pin-wrapper {
+  position: relative;
+  width: 44px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sz-pin-wrapper:hover {
+  transform: translateY(-5px) scale(1.1);
+  z-index: 900;
+}
+
+/* Modern Squircle / Teardrop Badge Body */
+.sz-pin-body {
+  position: relative;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px -3px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+}
+
+.sz-body-danger {
+  background: linear-gradient(145deg, #fb7185 0%, #e11d48 55%, #9f1239 100%);
+  border: 1.5px solid #ffe4e6;
+}
+
+.sz-body-warning {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #fde047 0%, #f59e0b 65%, #d97706 100%);
+  border: 1.5px solid #fef9c3;
+}
+
+.sz-body-haven {
+  background: linear-gradient(145deg, #34d399 0%, #059669 60%, #065f46 100%);
+  border: 1.5px solid #d1fae5;
+  animation: sz-haven-float 3.2s ease-in-out infinite;
+}
+
+.sz-pin-inner-ring {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sz-pin-inner-amber {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pointer Caret Tip */
+.sz-pin-tip {
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  margin-top: -5px;
+  z-index: 1;
+  border-radius: 1.5px;
+}
+
+.sz-tip-danger {
+  background: #9f1239;
+  border-right: 1.5px solid #ffe4e6;
+  border-bottom: 1.5px solid #ffe4e6;
+}
+
+.sz-tip-warning {
+  background: #d97706;
+  border-right: 1.5px solid #fef9c3;
+  border-bottom: 1.5px solid #fef9c3;
+}
+
+.sz-tip-haven {
+  background: #065f46;
+  border-right: 1.5px solid #d1fae5;
+  border-bottom: 1.5px solid #d1fae5;
+  animation: sz-haven-float 3.2s ease-in-out infinite;
+}
+
+/* Ground Shadow Ellipse */
+.sz-pin-shadow {
+  width: 14px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(1px);
+  margin-top: 2px;
+}
+
+/* 1. Danger Tactical Radar Pulse Waves */
+.sz-danger-pulse {
+  position: absolute;
+  top: 2px;
+  left: 7px;
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  background: rgba(244, 63, 94, 0.45);
+  border: 1.5px solid rgba(251, 113, 133, 0.8);
+  z-index: 0;
+  pointer-events: none;
+  animation: sz-radar-wave 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.sz-pulse-delay {
+  animation-delay: 1.2s;
+}
+
+/* 2. Warning Streetlight Beacon Halo & Flicker */
+.sz-warning-halo {
+  position: absolute;
+  top: 0px;
+  left: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.55) 0%, rgba(251, 191, 36, 0) 72%);
+  z-index: 0;
+  pointer-events: none;
+  animation: sz-amber-breathe 2.6s ease-in-out infinite;
+}
+
+.sz-flicker-icon {
+  animation: sz-lamp-flicker 3.5s infinite;
+}
+
+/* 3. Safe Haven Shield Glow & 24h Live Dot */
+.sz-haven-glow {
+  position: absolute;
+  top: 2px;
+  left: 7px;
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.35);
+  filter: blur(5px);
+  z-index: 0;
+  pointer-events: none;
+  animation: sz-amber-breathe 3s ease-in-out infinite;
+}
+
+.sz-live-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: #4ade80;
+  border: 1.5px solid #064e3b;
+  box-shadow: 0 0 6px #4ade80;
+}
+
+/* 4. User GPS Sonar Beacon */
+.sz-user-beacon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+.sz-user-beacon:active {
+  cursor: grabbing;
+}
+
+.sz-sonar-ring {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.32);
+  border: 1.5px solid rgba(125, 211, 252, 0.7);
+  animation: sz-sonar-expand 2.6s ease-out infinite;
+  pointer-events: none;
+}
+
+.sz-sonar-delay {
+  animation-delay: 1.3s;
+}
+
+.sz-user-core {
+  position: relative;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sz-user-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+}
+
+@keyframes sz-radar-wave {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+
+@keyframes sz-sonar-expand {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+@keyframes sz-haven-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+
+@keyframes sz-amber-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 0.95;
+  }
+}
+
+@keyframes sz-lamp-flicker {
+  0%, 18%, 22%, 62%, 64%, 100% {
+    opacity: 1;
+  }
+  20%, 63% {
+    opacity: 0.45;
+  }
 }
 </style>
