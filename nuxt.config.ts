@@ -1,4 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
@@ -23,13 +22,16 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'SafeZone — Crowdsourced Night-Commute & Street Safety Intelligence',
+      htmlAttrs: {
+        lang: 'id'
+      },
+      title: 'SafeZone: Pemantauan Keamanan Jalan Malam & Rute Aman',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
           name: 'description',
-          content: 'Platform intelijen keselamatan jalanan dan rute pulang malam berbasis crowdsource. Temukan titik rawan kejahatan, jalan gelap, dan safe haven 24 jam.'
+          content: 'Peta keselamatan jalan malam berbasis laporan warga. Cek titik rawan kejahatan, lampu jalan mati, dan rute ke tempat berlindung 24 jam.'
         },
         { name: 'theme-color', content: '#0b0f19' }
       ],
@@ -38,7 +40,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap'
+          href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'
         }
       ]
     }

@@ -6,9 +6,40 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased font-sans overflow-x-hidden selection:bg-slate-900 selection:text-white;
   }
+
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  select:not(:disabled),
+  label[for],
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid #059669;
+    outline-offset: 2px;
+  }
 }
 
-/* Custom Leaflet Light Clean Popup & Container */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;
   color: #0f172a !important;
@@ -30,11 +61,10 @@
 }
 
 .leaflet-container {
-  background-color: #f8fafc !important;
+  background-color: #0b0f19 !important;
   font-family: inherit !important;
 }
 
-/* Leaflet Zoom and Control Styling */
 .leaflet-bar {
   border: 1px solid #e2e8f0 !important;
   border-radius: 0.75rem !important;
@@ -55,8 +85,8 @@
 }
 
 .leaflet-control-attribution {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #64748b !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #475569 !important;
   font-size: 10px !important;
   backdrop-filter: blur(4px);
   padding: 2px 8px !important;
@@ -66,10 +96,9 @@
 }
 
 .leaflet-control-attribution a {
-  color: #475569 !important;
+  color: #334155 !important;
 }
 
-/* Custom Scrollbar - Clean & Muted */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
