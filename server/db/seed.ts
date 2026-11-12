@@ -8,16 +8,17 @@ async function runSeed() {
   const databaseUrl = process.env.DATABASE_URL
 
   if (!databaseUrl || databaseUrl.includes('username:password') || databaseUrl.includes('ep-safezone-project')) {
-    console.error('❌ Error: DATABASE_URL tidak valid di file .env. Pastikan Anda telah memasukkan URL koneksi Neon yang sesungguhnya.')
+    console.error('Error: DATABASE_URL tidak valid di file .env.')
     process.exit(1)
   }
 
-  console.log('🌱 Menghubungkan ke Neon PostgreSQL...')
+  console.log('Menghubungkan ke Neon PostgreSQL...')
   const sql = neon(databaseUrl)
   const db = drizzle(sql, { schema })
 
   try {
-    console.log('Seeding Safe Havens (Titik Aman)...')
+    await sql('TRUNCATE TABLE reports, safe_havens RESTART IDENTITY CASCADE')
+
     for (const haven of initialSafeHavens) {
       await db.insert(schema.safeHavens).values({
         name: haven.name,
@@ -25,11 +26,10 @@ async function runSeed() {
         address: haven.address,
         latitude: haven.latitude,
         longitude: haven.longitude
-      }).onConflictDoNothing()
+      })
     }
-    console.log(`✅ Berhasil menyuntikkan ${initialSafeHavens.length} Safe Havens.`)
+    console.log(`Berhasil menyuntikkan ${initialSafeHavens.length} Safe Havens multi-kota.`)
 
-    console.log('Seeding Reports (Laporan Titik Rawan)...')
     for (const report of initialReports) {
       await db.insert(schema.reports).values({
         title: report.title,
@@ -40,16 +40,13 @@ async function runSeed() {
         longitude: report.longitude,
         upvotes: report.upvotes,
         createdAt: report.createdAt
-      }).onConflictDoNothing()
+      })
     }
-    console.log(`✅ Berhasil menyuntikkan ${initialReports.length} Laporan Bahaya Awal.`)
-
-    console.log('🎉 Seeding database Neon selesai dengan sukses!')
+    console.log(`Berhasil menyuntikkan ${initialReports.length} Laporan Bahaya multi-kota.`)
   } catch (error) {
-    console.error('❌ Gagal melakukan seeding database:', error)
+    console.error('Gagal melakukan seeding database:', error)
     process.exit(1)
   }
 }
 
 runSeed()
-
