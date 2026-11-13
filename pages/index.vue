@@ -40,8 +40,11 @@
             :is-picking-location="isPickingLocation"
             :user-coords="userCoords"
             :active-route-haven="activeRouteHaven"
+            :upvoted-ids="upvotedIds"
+            :resolved-ids="resolvedIds"
             @select-location="handleSelectLocation"
             @upvote="handleUpvote"
+            @resolve="handleResolve"
             @update:category="activeCategory = $event"
             @update-user-coords="handleUpdateUserCoords"
             @draw-route="handleDrawRoute"
@@ -138,6 +141,9 @@ import {
   type Coordinates
 } from '~/utils/geo'
 
+const UPVOTED_STORAGE_KEY = 'safezone_upvoted_reports_v1'
+const RESOLVED_STORAGE_KEY = 'safezone_resolved_reports_v1'
+
 const safetyMapRef = ref<any>(null)
 const reports = ref<Report[]>([])
 const safeHavens = ref<SafeHaven[]>([])
@@ -155,6 +161,9 @@ const userCoords = ref<Coordinates>({
 const isUserGpsLive = ref(false)
 const activeRouteHaven = ref<SafeHaven | null>(null)
 const isSendingSos = ref(false)
+
+const upvotedIds = ref<number[]>([])
+const resolvedIds = ref<number[]>([])
 
 const isReportModalOpen = ref(false)
 const isPickingLocation = ref(false)
@@ -194,6 +203,33 @@ const cityHavens = computed(() => {
   })
 })
 
+function loadStoredVotes() {
+  if (!process.client) return
+  try {
+    const rawUpvoted = localStorage.getItem(UPVOTED_STORAGE_KEY)
+    if (rawUpvoted) {
+      upvotedIds.value = JSON.parse(rawUpvoted)
+    }
+    const rawResolved = localStorage.getItem(RESOLVED_STORAGE_KEY)
+    if (rawResolved) {
+      resolvedIds.value = JSON.parse(rawResolved)
+    }
+  } catch {
+    upvotedIds.value = []
+    resolvedIds.value = []
+  }
+}
+
+function saveStoredVotes() {
+  if (!process.client) return
+  try {
+    localStorage.setItem(UPVOTED_STORAGE_KEY, JSON.stringify(upvotedIds.value))
+    localStorage.setItem(RESOLVED_STORAGE_KEY, JSON.stringify(resolvedIds.value))
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 function showToast(message: string, type: 'success' | 'info' = 'success') {
   toast.message = message
   toast.type = type
@@ -227,6 +263,7 @@ async function loadData() {
 }
 
 onMounted(() => {
+  loadStoredVotes()
   loadData()
 })
 
@@ -287,7 +324,7 @@ function handleDrawRoute(haven: SafeHaven) {
     lat: haven.latitude,
     lng: haven.longitude
   })
-  showToast(`Menampilkan rute ke ${haven.name} (${formatDistance(dist)}).`, 'success')
+  showToast(`Menghitung rute jalan raya ke ${haven.name} (~${formatDistance(dist)}).`, 'success')
 }
 
 function findNearestHavenName(coords: Coordinates): string | undefined {
@@ -371,6 +408,14 @@ function handleFocusReport(report: Report) {
 }
 
 async function handleUpvote(reportId: number) {
+  if (upvotedIds.value.includes(reportId)) {
+    showToast('Anda sudah memberikan validasi pada titik laporan ini.', 'info')
+    return
+  }
+
+  upvotedIds.value = [...upvotedIds.value, reportId]
+  saveStoredVotes()
+
   const target = reports.value.find(r => r.id === reportId)
   if (target) {
     target.upvotes += 1
@@ -384,6 +429,31 @@ async function handleUpvote(reportId: number) {
     })
   } catch (error) {
     console.error('Gagal upvote:', error)
+  }
+}
+
+async function handleResolve(reportId: number) {
+  if (resolvedIds.value.includes(reportId)) {
+    showToast('Anda sudah menandai titik ini sebagai kondusif.', 'info')
+    return
+  }
+
+  resolvedIds.value = [...resolvedIds.value, reportId]
+  saveStoredVotes()
+
+  const target = reports.value.find(r => r.id === reportId)
+  if (target) {
+    target.resolvedCount = (target.resolvedCount || 0) + 1
+  }
+
+  showToast('Terima kasih! Konfirmasi kondisi aman/kondusif telah dicatat.', 'success')
+
+  try {
+    await $fetch(`/api/reports/${reportId}/resolve`, {
+      method: 'POST'
+    })
+  } catch (error) {
+    console.error('Gagal resolve:', error)
   }
 }
 

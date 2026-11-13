@@ -5,7 +5,7 @@
         <h2 class="font-bold text-sm sm:text-base tracking-tight text-slate-900">Laporan Warga</h2>
         <InfoPopover
           title="Laporan Warga"
-          content="Daftar laporan jalan rawan terbaru di wilayah ini. Klik tombol kategori di bawah untuk menyaring daftar sekaligus menyorot pin di peta."
+          content="Daftar laporan jalan rawan terbaru di wilayah ini. Klik baris laporan untuk menyorot titiknya di peta, atau gunakan tombol kategori di bawah untuk menyaring."
           label="Penjelasan daftar laporan warga"
         />
       </div>
@@ -32,7 +32,11 @@
             <span
               :class="[
                 'w-2 h-2 rounded-full shrink-0',
-                item.dangerLevel === 'high' ? 'bg-rose-500' : 'bg-amber-500'
+                (item.resolvedCount || 0) >= 3
+                  ? 'bg-emerald-500'
+                  : item.dangerLevel === 'high'
+                    ? 'bg-rose-500'
+                    : 'bg-amber-500'
               ]"
             ></span>
             <span class="font-bold text-xs text-slate-900 truncate group-hover:text-emerald-800">
@@ -44,9 +48,17 @@
           </p>
         </div>
 
-        <span class="text-[11px] font-semibold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shrink-0 tabular-nums">
-          {{ item.upvotes }} validasi
-        </span>
+        <div class="flex flex-col items-end gap-1 shrink-0">
+          <span class="text-[11px] font-semibold text-slate-700 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 tabular-nums">
+            {{ item.upvotes }} validasi
+          </span>
+          <span
+            v-if="(item.resolvedCount || 0) >= 3"
+            class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200"
+          >
+            ✓ Mulai Kondusif
+          </span>
+        </div>
       </button>
     </div>
 
