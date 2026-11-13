@@ -2,42 +2,75 @@
   <div class="relative w-full h-[380px] sm:h-[420px] rounded-3xl overflow-hidden border border-slate-200/80 shadow-card bg-[#0b0f19]">
     <div ref="mapContainer" class="w-full h-full z-0" role="region" aria-label="Peta interaktif titik rawan dan tempat berlindung 24 jam"></div>
 
-    <div class="absolute top-3.5 left-3.5 right-16 sm:right-auto z-[400] flex flex-wrap items-center gap-2">
-      <div class="relative flex items-center bg-white/95 backdrop-blur-md rounded-2xl px-3.5 py-2 border border-slate-200/90 shadow-md">
-        <label for="map-search-input" class="sr-only">Cari jalan atau lokasi</label>
-        <svg aria-hidden="true" class="w-4 h-4 text-slate-500 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input
-          id="map-search-input"
-          v-model="searchQuery"
-          type="search"
-          placeholder="Cari nama jalan atau pos..."
-          class="bg-transparent text-xs text-slate-900 placeholder-slate-500 focus:outline-none w-40 sm:w-56 font-medium"
-        />
+    <div class="absolute top-3.5 left-3.5 right-16 sm:right-auto z-[400] flex flex-col gap-1.5">
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="relative flex items-center bg-white/95 backdrop-blur-md rounded-2xl px-3.5 py-2 border border-slate-200/90 shadow-md">
+          <label for="map-search-input" class="sr-only">Cari jalan atau lokasi</label>
+          <svg aria-hidden="true" class="w-4 h-4 text-slate-500 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            id="map-search-input"
+            v-model="searchQuery"
+            type="search"
+            @focus="isSearchDropdownOpen = true"
+            @keydown.enter.prevent="selectFirstSearchResult"
+            placeholder="Cari jalan, begal, atau pos..."
+            class="bg-transparent text-xs text-slate-900 placeholder-slate-500 focus:outline-none w-40 sm:w-56 font-medium"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="clearSearch"
+            aria-label="Hapus pencarian"
+            class="text-slate-500 hover:text-slate-800 text-xs ml-1.5 px-1 font-bold"
+          >
+            ×
+          </button>
+        </div>
+
         <button
-          v-if="searchQuery"
+          v-if="activeCategory !== 'all'"
           type="button"
-          @click="searchQuery = ''"
-          aria-label="Hapus pencarian"
-          class="text-slate-500 hover:text-slate-800 text-xs ml-1.5 px-1 font-bold"
+          @click="$emit('update:category', 'all')"
+          class="bg-slate-900/95 hover:bg-slate-800 text-white backdrop-blur-md rounded-2xl px-3 py-2 text-xs font-semibold border border-slate-700 shadow-md flex items-center gap-1.5 transition-colors"
+          title="Hapus filter kategori"
         >
-          ×
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Filter: {{ categoryName(activeCategory) }}</span>
+          <span class="text-slate-300 font-bold ml-0.5">×</span>
         </button>
       </div>
 
-      <button
-        v-if="activeCategory !== 'all'"
-        type="button"
-        @click="$emit('update:category', 'all')"
-        class="bg-slate-900/95 hover:bg-slate-800 text-white backdrop-blur-md rounded-2xl px-3 py-2 text-xs font-semibold border border-slate-700 shadow-md flex items-center gap-1.5 transition-colors"
-        title="Hapus filter kategori"
+      <div
+        v-if="searchQuery.trim() && isSearchDropdownOpen"
+        class="w-64 sm:w-72 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden"
       >
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span>Filter: {{ categoryName(activeCategory) }}</span>
-        <span class="text-slate-300 font-bold ml-0.5">×</span>
-      </button>
+        <div v-if="searchResults.length > 0" class="max-h-52 overflow-y-auto divide-y divide-slate-100">
+          <button
+            v-for="res in searchResults"
+            :key="`${res.kind}-${res.id}`"
+            type="button"
+            @click="handleSelectSearchResult(res)"
+            class="w-full px-3.5 py-2.5 text-left hover:bg-slate-100/90 transition-colors flex items-start gap-2.5"
+          >
+            <span
+              :class="[
+                'w-2 h-2 rounded-full mt-1.5 shrink-0',
+                res.kind === 'haven' ? 'bg-emerald-500' : 'bg-rose-500'
+              ]"
+            ></span>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-slate-900 truncate">{{ res.title }}</div>
+              <div class="text-[11px] text-slate-600 truncate">{{ res.subtitle }}</div>
+            </div>
+          </button>
+        </div>
+        <div v-else class="px-3.5 py-3 text-xs text-slate-600 text-center">
+          Tidak ditemukan titik dengan kata kunci "{{ searchQuery }}" di wilayah ini.
+        </div>
+      </div>
     </div>
 
     <div class="absolute top-3.5 right-3.5 z-[400] flex flex-col sm:flex-row items-center gap-2">
@@ -76,11 +109,13 @@
       <div class="min-w-0">
         <div class="flex items-center gap-1.5 mb-0.5">
           <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Rute Aman Aktif</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+            {{ isFetchingRoute ? 'Menghitung Rute Jalan...' : activeRouteInfo.isRoadRoute ? 'Rute Jalan Raya Aktif' : 'Rute Kompas Aktif' }}
+          </span>
         </div>
         <p class="text-xs font-bold text-slate-900 truncate">{{ activeRouteInfo.haven.name }}</p>
         <p class="text-[11px] text-slate-600 font-medium mt-0.5">
-          Jarak: <strong class="text-slate-900">{{ activeRouteInfo.distanceLabel }}</strong>
+          Jarak tempuh: <strong class="text-slate-900">{{ activeRouteInfo.distanceLabel }}</strong>
           · Est. motor <strong class="text-slate-900">{{ activeRouteInfo.motorMinutes }} mnt</strong>
           (jalan kaki {{ activeRouteInfo.walkMinutes }} mnt)
         </p>
@@ -147,8 +182,18 @@ import {
   formatDistance,
   estimateMotorMinutes,
   estimateWalkMinutes,
+  fetchOsrmStreetRoute,
   type Coordinates
 } from '~/utils/geo'
+
+interface SearchItem {
+  kind: 'report' | 'haven'
+  id: number
+  title: string
+  subtitle: string
+  lat: number
+  lng: number
+}
 
 const props = withDefaults(
   defineProps<{
@@ -159,18 +204,23 @@ const props = withDefaults(
     isPickingLocation?: boolean
     userCoords: Coordinates
     activeRouteHaven?: SafeHaven | null
+    upvotedIds?: number[]
+    resolvedIds?: number[]
   }>(),
   {
     activeCategory: 'all',
     mapFocus: 'all',
     isPickingLocation: false,
-    activeRouteHaven: null
+    activeRouteHaven: null,
+    upvotedIds: () => [],
+    resolvedIds: () => []
   }
 )
 
 const emit = defineEmits<{
   (e: 'selectLocation', payload: Coordinates): void
   (e: 'upvote', reportId: number): void
+  (e: 'resolve', reportId: number): void
   (e: 'update:category', category: string): void
   (e: 'updateUserCoords', coords: Coordinates, isLiveGps: boolean): void
   (e: 'drawRoute', haven: SafeHaven): void
@@ -179,6 +229,7 @@ const emit = defineEmits<{
 
 const mapContainer = ref<HTMLElement | null>(null)
 const searchQuery = ref('')
+const isSearchDropdownOpen = ref(false)
 let map: any = null
 let L: any = null
 let reportsLayerGroup: any = null
@@ -186,8 +237,16 @@ let havensLayerGroup: any = null
 let routeLayerGroup: any = null
 let userMarker: any = null
 let pickerMarker: any = null
+const reportMarkersMap = new Map<number, any>()
+const havenMarkersMap = new Map<number, any>()
 
 const isLocating = ref(false)
+const isFetchingRoute = ref(false)
+const osrmRouteStats = ref<{
+  distanceMeters: number
+  durationSeconds: number
+  isRoadRoute: boolean
+} | null>(null)
 
 function categoryName(cat: string): string {
   const names: Record<string, string> = {
@@ -199,18 +258,80 @@ function categoryName(cat: string): string {
   return names[cat] || cat
 }
 
+const searchResults = computed<SearchItem[]>(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q) return []
+
+  const matchedReports: SearchItem[] = props.reports
+    .filter(r => r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q))
+    .map(r => ({
+      kind: 'report',
+      id: r.id,
+      title: r.title,
+      subtitle: r.description,
+      lat: r.latitude,
+      lng: r.longitude
+    }))
+
+  const matchedHavens: SearchItem[] = props.safeHavens
+    .filter(h => h.name.toLowerCase().includes(q) || h.address.toLowerCase().includes(q))
+    .map(h => ({
+      kind: 'haven',
+      id: h.id,
+      title: h.name,
+      subtitle: h.address,
+      lat: h.latitude,
+      lng: h.longitude
+    }))
+
+  return [...matchedReports, ...matchedHavens].slice(0, 6)
+})
+
+function clearSearch() {
+  searchQuery.value = ''
+  isSearchDropdownOpen.value = false
+  renderMarkers(true)
+}
+
+function handleSelectSearchResult(item: SearchItem) {
+  isSearchDropdownOpen.value = false
+  if (!map) return
+  map.flyTo([item.lat, item.lng], 16, { duration: 0.9 })
+  setTimeout(() => {
+    const marker =
+      item.kind === 'report'
+        ? reportMarkersMap.get(item.id)
+        : havenMarkersMap.get(item.id)
+    if (marker) {
+      marker.openPopup()
+    }
+  }, 600)
+}
+
+function selectFirstSearchResult() {
+  if (searchResults.value.length > 0) {
+    handleSelectSearchResult(searchResults.value[0])
+  }
+}
+
 const activeRouteInfo = computed(() => {
   if (!props.activeRouteHaven) return null
-  const meters = calculateDistanceMeters(props.userCoords, {
+  const fallbackMeters = calculateDistanceMeters(props.userCoords, {
     lat: props.activeRouteHaven.latitude,
     lng: props.activeRouteHaven.longitude
   })
+  const meters = osrmRouteStats.value?.distanceMeters ?? fallbackMeters
+  const motorMinutes = osrmRouteStats.value?.isRoadRoute
+    ? Math.max(1, Math.round(osrmRouteStats.value.durationSeconds / 60))
+    : estimateMotorMinutes(meters)
+
   return {
     haven: props.activeRouteHaven,
     meters,
     distanceLabel: formatDistance(meters),
-    motorMinutes: estimateMotorMinutes(meters),
-    walkMinutes: estimateWalkMinutes(meters)
+    motorMinutes,
+    walkMinutes: estimateWalkMinutes(meters),
+    isRoadRoute: osrmRouteStats.value?.isRoadRoute ?? false
   }
 })
 
@@ -219,6 +340,9 @@ onMounted(async () => {
     L = await import('leaflet')
     ;(window as any).handleMapUpvote = (id: number) => {
       emit('upvote', id)
+    }
+    ;(window as any).handleMapResolve = (id: number) => {
+      emit('resolve', id)
     }
     ;(window as any).handleMapRouteHaven = (havenId: number) => {
       const target = props.safeHavens.find(h => h.id === havenId)
@@ -238,6 +362,7 @@ onBeforeUnmount(() => {
   }
   if (process.client) {
     delete (window as any).handleMapUpvote
+    delete (window as any).handleMapResolve
     delete (window as any).handleMapRouteHaven
   }
 })
@@ -263,6 +388,7 @@ function initMap() {
   havensLayerGroup = L.layerGroup().addTo(map)
 
   map.on('click', (e: any) => {
+    isSearchDropdownOpen.value = false
     const { lat, lng } = e.latlng
     if (props.isPickingLocation) {
       setPickerLocation(lat, lng)
@@ -283,7 +409,6 @@ function zoomOut() {
   if (map) map.zoomOut()
 }
 
-// 1. Animated User GPS Sonar Beacon (Mapbox / Uber Driver style)
 function createUserPin() {
   return L.divIcon({
     className: 'sz-custom-pin',
@@ -302,8 +427,7 @@ function createUserPin() {
   })
 }
 
-// 2. Animated High-Danger Tactical Radar Pin (Waze / Citizen App style)
-function createDangerPin(category: string) {
+function createDangerPin(category: string, isResolved: boolean) {
   const isGang = category === 'geng_motor'
   const svgIcon = isGang
     ? `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -315,13 +439,17 @@ function createDangerPin(category: string) {
          <line x1="12" y1="17" x2="12.01" y2="17"/>
        </svg>`
 
+  const resolvedBadge = isResolved
+    ? `<span class="sz-resolved-badge" title="Mulai Kondusif">✓</span>`
+    : ''
+
   return L.divIcon({
     className: 'sz-custom-pin',
     html: `
       <div class="sz-pin-wrapper sz-pin-danger group">
-        <span class="sz-danger-pulse"></span>
-        <span class="sz-danger-pulse sz-pulse-delay"></span>
+        ${isResolved ? '' : '<span class="sz-danger-pulse"></span><span class="sz-danger-pulse sz-pulse-delay"></span>'}
         <div class="sz-pin-body sz-body-danger">
+          ${resolvedBadge}
           <div class="sz-pin-inner-ring">
             ${svgIcon}
           </div>
@@ -336,8 +464,7 @@ function createDangerPin(category: string) {
   })
 }
 
-// 3. Animated Streetlight / Caution Beacon Pin (Amber Gold Glow)
-function createWarningPin(category: string) {
+function createWarningPin(category: string, isResolved: boolean) {
   const isDarkRoad = category === 'gelap'
   const svgIcon = isDarkRoad
     ? `<svg class="w-4 h-4 text-slate-950 sz-flicker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -349,12 +476,17 @@ function createWarningPin(category: string) {
          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
        </svg>`
 
+  const resolvedBadge = isResolved
+    ? `<span class="sz-resolved-badge" title="Mulai Kondusif">✓</span>`
+    : ''
+
   return L.divIcon({
     className: 'sz-custom-pin',
     html: `
       <div class="sz-pin-wrapper sz-pin-warning group">
         <span class="sz-warning-halo"></span>
         <div class="sz-pin-body sz-body-warning">
+          ${resolvedBadge}
           <div class="sz-pin-inner-amber">
             ${svgIcon}
           </div>
@@ -369,7 +501,6 @@ function createWarningPin(category: string) {
   })
 }
 
-// 4. Animated 24h Safe Haven Shield Pin (Specific icon for Police / SPBU / Minimarket)
 function createHavenPin(type: string) {
   let svgIcon = ''
   if (type === 'pos_polisi') {
@@ -445,6 +576,8 @@ function renderMarkers(shouldFitBounds = false) {
 
   reportsLayerGroup.clearLayers()
   havensLayerGroup.clearLayers()
+  reportMarkersMap.clear()
+  havenMarkersMap.clear()
 
   const q = searchQuery.value.toLowerCase().trim()
   const showReports = props.mapFocus === 'all' || props.mapFocus === 'reports'
@@ -462,23 +595,42 @@ function renderMarkers(shouldFitBounds = false) {
     filteredReports.forEach((report) => {
       visiblePoints.push([report.latitude, report.longitude])
       const isRedPin = report.category === 'begal' || report.category === 'geng_motor'
-      const icon = isRedPin ? createDangerPin(report.category) : createWarningPin(report.category)
+      const isResolved = (report.resolvedCount || 0) >= 3
+      const icon = isRedPin
+        ? createDangerPin(report.category, isResolved)
+        : createWarningPin(report.category, isResolved)
       const marker = L.marker([report.latitude, report.longitude], { icon })
+      reportMarkersMap.set(report.id, marker)
 
-      const dangerLabel = {
-        high: 'Bahaya Tinggi',
-        medium: 'Waspada',
-        low: 'Risiko Rendah'
-      }[report.dangerLevel] || 'Waspada'
+      const hasUpvoted = props.upvotedIds.includes(report.id)
+      const hasResolved = props.resolvedIds.includes(report.id)
 
-      const dangerBadgeClass = {
-        high: 'bg-rose-50 text-rose-700 border-rose-200',
-        medium: 'bg-amber-50 text-amber-800 border-amber-200',
-        low: 'bg-slate-100 text-slate-700 border-slate-200'
-      }[report.dangerLevel] || 'bg-slate-100 text-slate-700'
+      const dangerLabel = isResolved
+        ? 'Mulai Kondusif'
+        : ({
+            high: 'Bahaya Tinggi',
+            medium: 'Waspada',
+            low: 'Risiko Rendah'
+          }[report.dangerLevel] || 'Waspada')
+
+      const dangerBadgeClass = isResolved
+        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+        : ({
+            high: 'bg-rose-50 text-rose-700 border-rose-200',
+            medium: 'bg-amber-50 text-amber-800 border-amber-200',
+            low: 'bg-slate-100 text-slate-700 border-slate-200'
+          }[report.dangerLevel] || 'bg-slate-100 text-slate-700')
+
+      const upvoteBtnClass = hasUpvoted
+        ? 'bg-slate-900 text-white border-slate-900'
+        : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
+
+      const resolveBtnClass = hasResolved
+        ? 'bg-emerald-600 text-white border-emerald-600'
+        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
 
       const popupHtml = `
-        <div class="p-3.5 bg-white text-slate-900 max-w-[260px]">
+        <div class="p-3.5 bg-white text-slate-900 max-w-[265px]">
           <div class="flex items-center justify-between gap-2 mb-1.5">
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${dangerBadgeClass}">
               ${dangerLabel}
@@ -489,23 +641,24 @@ function renderMarkers(shouldFitBounds = false) {
           </div>
           <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${report.title}</h4>
           <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${report.description}</p>
-          <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
             <button
               type="button"
               onclick="window.handleMapUpvote(${report.id})"
-              class="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+              class="flex-1 flex items-center justify-center gap-1 text-[11px] font-bold px-2 py-1.5 rounded-lg border transition-colors ${upvoteBtnClass}"
             >
-              <span>Validasi Warga:</span>
-              <span class="text-slate-900">${report.upvotes}</span>
+              <span>${hasUpvoted ? '✓ Tervalidasi' : 'Validasi'}</span>
+              <span>(${report.upvotes})</span>
             </button>
-            <a
-              href="https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-[11px] font-semibold text-slate-700 hover:text-slate-900 underline"
+            <button
+              type="button"
+              onclick="window.handleMapResolve(${report.id})"
+              class="flex-1 flex items-center justify-center gap-1 text-[11px] font-bold px-2 py-1.5 rounded-lg border transition-colors ${resolveBtnClass}"
+              title="Tandai jika jalan ini sudah diperbaiki atau sudah aman"
             >
-              Cek Lokasi
-            </a>
+              <span>${hasResolved ? '✓ Kondusif' : 'Sudah Aman'}</span>
+              <span>(${report.resolvedCount || 0})</span>
+            </button>
           </div>
         </div>
       `
@@ -528,6 +681,8 @@ function renderMarkers(shouldFitBounds = false) {
       visiblePoints.push([haven.latitude, haven.longitude])
       const icon = createHavenPin(haven.type)
       const marker = L.marker([haven.latitude, haven.longitude], { icon })
+      havenMarkersMap.set(haven.id, marker)
+
       const distMeters = calculateDistanceMeters(props.userCoords, {
         lat: haven.latitude,
         lng: haven.longitude
@@ -551,7 +706,7 @@ function renderMarkers(shouldFitBounds = false) {
               onclick="window.handleMapRouteHaven(${haven.id})"
               class="flex-1 text-center text-xs font-bold px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
             >
-              Garis Rute Peta
+              Rute Jalan Peta
             </button>
             <a
               href="https://www.google.com/maps/dir/?api=1&destination=${haven.latitude},${haven.longitude}"
@@ -584,34 +739,52 @@ function renderMarkers(shouldFitBounds = false) {
   }
 }
 
-function renderRouteLine() {
+async function renderRouteLine() {
   if (!map || !L || !routeLayerGroup) return
 
   routeLayerGroup.clearLayers()
+  osrmRouteStats.value = null
+
   if (!props.activeRouteHaven) return
 
-  const start: [number, number] = [props.userCoords.lat, props.userCoords.lng]
-  const end: [number, number] = [props.activeRouteHaven.latitude, props.activeRouteHaven.longitude]
+  const targetHaven = props.activeRouteHaven
+  isFetchingRoute.value = true
 
-  const outerLine = L.polyline([start, end], {
-    color: '#10b981',
-    weight: 8,
-    opacity: 0.28,
-    lineCap: 'round'
+  const routeData = await fetchOsrmStreetRoute(props.userCoords, {
+    lat: targetHaven.latitude,
+    lng: targetHaven.longitude
   })
 
-  const innerLine = L.polyline([start, end], {
+  isFetchingRoute.value = false
+  if (!props.activeRouteHaven || props.activeRouteHaven.id !== targetHaven.id) return
+
+  osrmRouteStats.value = {
+    distanceMeters: routeData.distanceMeters,
+    durationSeconds: routeData.durationSeconds,
+    isRoadRoute: routeData.isRoadRoute
+  }
+
+  const outerLine = L.polyline(routeData.coordinates, {
+    color: '#10b981',
+    weight: 9,
+    opacity: 0.28,
+    lineCap: 'round',
+    lineJoin: 'round'
+  })
+
+  const innerLine = L.polyline(routeData.coordinates, {
     color: '#34d399',
-    weight: 3.5,
-    opacity: 0.95,
-    dashArray: '8, 8',
-    lineCap: 'round'
+    weight: 4,
+    opacity: 0.96,
+    dashArray: routeData.isRoadRoute ? undefined : '8, 8',
+    lineCap: 'round',
+    lineJoin: 'round'
   })
 
   routeLayerGroup.addLayer(outerLine)
   routeLayerGroup.addLayer(innerLine)
 
-  const bounds = L.latLngBounds([start, end])
+  const bounds = L.latLngBounds(routeData.coordinates)
   map.fitBounds(bounds, { padding: [55, 55], maxZoom: 16 })
 }
 
@@ -681,7 +854,7 @@ watch(
 )
 
 watch(
-  [() => props.reports, () => props.safeHavens, searchQuery],
+  [() => props.reports, () => props.safeHavens, () => props.upvotedIds, () => props.resolvedIds, searchQuery],
   () => {
     renderMarkers(false)
   },
@@ -739,7 +912,6 @@ defineExpose({
   border: none !important;
 }
 
-/* Base Pin Wrapper with Hover Lift */
 .sz-pin-wrapper {
   position: relative;
   width: 44px;
@@ -757,7 +929,6 @@ defineExpose({
   z-index: 900;
 }
 
-/* Modern Squircle / Teardrop Badge Body */
 .sz-pin-body {
   position: relative;
   z-index: 2;
@@ -809,7 +980,6 @@ defineExpose({
   justify-content: center;
 }
 
-/* Pointer Caret Tip */
 .sz-pin-tip {
   width: 9px;
   height: 9px;
@@ -838,7 +1008,6 @@ defineExpose({
   animation: sz-haven-float 3.2s ease-in-out infinite;
 }
 
-/* Ground Shadow Ellipse */
 .sz-pin-shadow {
   width: 14px;
   height: 4px;
@@ -848,7 +1017,6 @@ defineExpose({
   margin-top: 2px;
 }
 
-/* 1. Danger Tactical Radar Pulse Waves */
 .sz-danger-pulse {
   position: absolute;
   top: 2px;
@@ -867,7 +1035,6 @@ defineExpose({
   animation-delay: 1.2s;
 }
 
-/* 2. Warning Streetlight Beacon Halo & Flicker */
 .sz-warning-halo {
   position: absolute;
   top: 0px;
@@ -885,7 +1052,6 @@ defineExpose({
   animation: sz-lamp-flicker 3.5s infinite;
 }
 
-/* 3. Safe Haven Shield Glow & 24h Live Dot */
 .sz-haven-glow {
   position: absolute;
   top: 2px;
@@ -912,7 +1078,24 @@ defineExpose({
   box-shadow: 0 0 6px #4ade80;
 }
 
-/* 4. User GPS Sonar Beacon */
+.sz-resolved-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .sz-user-beacon {
   position: relative;
   width: 44px;
