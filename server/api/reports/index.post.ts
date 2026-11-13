@@ -74,6 +74,7 @@ export default defineEventHandler(async (event) => {
           latitude: latNum,
           longitude: lngNum,
           upvotes: 1,
+          resolvedCount: 0,
           createdAt: new Date()
         }).returning()
 

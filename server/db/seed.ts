@@ -17,6 +17,7 @@ async function runSeed() {
   const db = drizzle(sql, { schema })
 
   try {
+    await sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS resolved_count INTEGER NOT NULL DEFAULT 0')
     await sql('TRUNCATE TABLE reports, safe_havens RESTART IDENTITY CASCADE')
 
     for (const haven of initialSafeHavens) {
@@ -39,6 +40,7 @@ async function runSeed() {
         latitude: report.latitude,
         longitude: report.longitude,
         upvotes: report.upvotes,
+        resolvedCount: report.resolvedCount || 0,
         createdAt: report.createdAt
       })
     }

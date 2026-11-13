@@ -5,7 +5,6 @@ import { initialReports, initialSafeHavens } from './mock-data'
 
 const rawDatabaseUrl = process.env.DATABASE_URL || ''
 
-// Verifikasi apakah URL Neon valid dan bukan placeholder
 export const isDbConfigured = Boolean(
   rawDatabaseUrl &&
   !rawDatabaseUrl.includes('username:password') &&
@@ -24,22 +23,22 @@ if (isDbConfigured) {
     console.warn('[SafeZone DB] Failed to initialize Neon client, falling back to in-memory store:', error)
   }
 } else {
-  console.log('[SafeZone DB] Running in Fallback Mode with realistic demo data. Set DATABASE_URL in .env to connect to live Neon PostgreSQL.')
+  console.log('[SafeZone DB] Running in Fallback Mode with realistic demo data.')
 }
 
 export const db = _db
 
-// In-memory store fallback jika DATABASE_URL belum di-setup
 let inMemoryReports = [...initialReports]
 let inMemoryHavens = [...initialSafeHavens]
 
 export const memoryStore = {
   getReports: () => [...inMemoryReports].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-  addReport: (newReport: Omit<schema.Report, 'id' | 'createdAt' | 'upvotes'>) => {
+  addReport: (newReport: Omit<schema.Report, 'id' | 'createdAt' | 'upvotes' | 'resolvedCount'>) => {
     const created: schema.Report = {
       ...newReport,
       id: inMemoryReports.length ? Math.max(...inMemoryReports.map(r => r.id)) + 1 : 1,
       upvotes: 1,
+      resolvedCount: 0,
       createdAt: new Date()
     }
     inMemoryReports.unshift(created)
@@ -49,6 +48,14 @@ export const memoryStore = {
     const item = inMemoryReports.find(r => r.id === id)
     if (item) {
       item.upvotes += 1
+      return item
+    }
+    return null
+  },
+  resolveReport: (id: number) => {
+    const item = inMemoryReports.find(r => r.id === id)
+    if (item) {
+      item.resolvedCount = (item.resolvedCount || 0) + 1
       return item
     }
     return null
@@ -63,4 +70,3 @@ export const memoryStore = {
     return created
   }
 }
-

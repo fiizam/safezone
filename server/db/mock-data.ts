@@ -11,6 +11,7 @@ export const initialReports: Report[] = [
     latitude: -6.2255,
     longitude: 106.8562,
     upvotes: 42,
+    resolvedCount: 1,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2)
   },
   {
@@ -22,6 +23,7 @@ export const initialReports: Report[] = [
     latitude: -6.2412,
     longitude: 106.8834,
     upvotes: 28,
+    resolvedCount: 4,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5)
   },
   {
@@ -33,6 +35,7 @@ export const initialReports: Report[] = [
     latitude: -6.2625,
     longitude: 106.8122,
     upvotes: 65,
+    resolvedCount: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8)
   },
   {
@@ -44,6 +47,7 @@ export const initialReports: Report[] = [
     latitude: -6.2088,
     longitude: 106.8456,
     upvotes: 14,
+    resolvedCount: 3,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 18)
   },
   // Bandung
@@ -56,6 +60,7 @@ export const initialReports: Report[] = [
     latitude: -6.8989,
     longitude: 107.6081,
     upvotes: 54,
+    resolvedCount: 1,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4)
   },
   {
@@ -67,6 +72,7 @@ export const initialReports: Report[] = [
     latitude: -6.8932,
     longitude: 107.6095,
     upvotes: 31,
+    resolvedCount: 3,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12)
   },
   // Surabaya
@@ -79,6 +85,7 @@ export const initialReports: Report[] = [
     latitude: -7.2484,
     longitude: 112.7801,
     upvotes: 39,
+    resolvedCount: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6)
   },
   {
@@ -90,6 +97,7 @@ export const initialReports: Report[] = [
     latitude: -7.2435,
     longitude: 112.6812,
     upvotes: 22,
+    resolvedCount: 2,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 15)
   },
   // Yogyakarta
@@ -102,6 +110,7 @@ export const initialReports: Report[] = [
     latitude: -7.7525,
     longitude: 110.3821,
     upvotes: 47,
+    resolvedCount: 1,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 9)
   },
   // Semarang
@@ -114,6 +123,7 @@ export const initialReports: Report[] = [
     latitude: -7.0382,
     longitude: 110.4215,
     upvotes: 19,
+    resolvedCount: 3,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 20)
   },
   // Medan
@@ -126,6 +136,7 @@ export const initialReports: Report[] = [
     latitude: 3.5912,
     longitude: 98.6485,
     upvotes: 36,
+    resolvedCount: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 11)
   }
 ]
