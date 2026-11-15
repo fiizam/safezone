@@ -13,7 +13,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx server/db/seed.ts"
+    "db:seed": "tsx server/db/seed.ts",
+    "remote": "agy --remote-control",
+    "remote:start": "agy remote-control start --name safezone-cloud"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
