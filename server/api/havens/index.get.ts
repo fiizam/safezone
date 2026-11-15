@@ -1,4 +1,4 @@
-import { db, memoryStore } from '~/server/db'
+import { getDb, memoryStore } from '~/server/db'
 import * as schema from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     let havensList: schema.SafeHaven[] = []
+    const db = getDb()
 
     if (db) {
       try {
@@ -35,4 +36,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

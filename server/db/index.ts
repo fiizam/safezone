@@ -3,30 +3,49 @@ import { drizzle } from 'drizzle-orm/neon-http'
 import * as schema from './schema'
 import { initialReports, initialSafeHavens } from './mock-data'
 
-const rawDatabaseUrl = process.env.DATABASE_URL || ''
-
-export const isDbConfigured = Boolean(
-  rawDatabaseUrl &&
-  !rawDatabaseUrl.includes('username:password') &&
-  !rawDatabaseUrl.includes('ep-safezone-project') &&
-  (rawDatabaseUrl.startsWith('postgresql://') || rawDatabaseUrl.startsWith('postgres://'))
-)
-
 let _db: ReturnType<typeof drizzle> | null = null
+let _initializedUrl = ''
 
-if (isDbConfigured) {
+export function getDb() {
+  let rawDatabaseUrl = process.env.DATABASE_URL || ''
+  try {
+    const config = useRuntimeConfig()
+    if (config?.databaseUrl) {
+      rawDatabaseUrl = String(config.databaseUrl)
+    }
+  } catch {
+    // Fallback to process.env outside Nitro request context
+  }
+
+  rawDatabaseUrl = rawDatabaseUrl.trim()
+
+  const isValidUrl = Boolean(
+    rawDatabaseUrl &&
+    !rawDatabaseUrl.includes('username:password') &&
+    !rawDatabaseUrl.includes('ep-safezone-project') &&
+    (rawDatabaseUrl.startsWith('postgresql://') || rawDatabaseUrl.startsWith('postgres://'))
+  )
+
+  if (!isValidUrl) {
+    return null
+  }
+
+  if (_db && _initializedUrl === rawDatabaseUrl) {
+    return _db
+  }
+
   try {
     const sql = neon(rawDatabaseUrl)
     _db = drizzle(sql, { schema })
-    console.log('[SafeZone DB] Connected to Neon PostgreSQL via Drizzle ORM')
+    _initializedUrl = rawDatabaseUrl
+    return _db
   } catch (error) {
     console.warn('[SafeZone DB] Failed to initialize Neon client, falling back to in-memory store:', error)
+    return null
   }
-} else {
-  console.log('[SafeZone DB] Running in Fallback Mode with realistic demo data.')
 }
 
-export const db = _db
+export const db = getDb()
 
 let inMemoryReports = [...initialReports]
 let inMemoryHavens = [...initialSafeHavens]

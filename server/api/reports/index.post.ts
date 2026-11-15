@@ -1,4 +1,4 @@
-import { db, memoryStore } from '~/server/db'
+import { getDb, memoryStore } from '~/server/db'
 import * as schema from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
@@ -13,7 +13,6 @@ export default defineEventHandler(async (event) => {
 
   const { title, description, category, dangerLevel, latitude, longitude } = body
 
-  // Validasi input
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     throw createError({
       statusCode: 400,
@@ -63,6 +62,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     let createdReport: schema.Report
+    const db = getDb()
 
     if (db) {
       try {
@@ -114,4 +114,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

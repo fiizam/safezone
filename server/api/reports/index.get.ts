@@ -1,5 +1,5 @@
-import { desc, eq } from 'drizzle-orm'
-import { db, memoryStore } from '~/server/db'
+import { desc } from 'drizzle-orm'
+import { getDb, memoryStore } from '~/server/db'
 import * as schema from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     let reportsList: schema.Report[] = []
+    const db = getDb()
 
     if (db) {
       try {
@@ -22,7 +23,6 @@ export default defineEventHandler(async (event) => {
       reportsList = memoryStore.getReports()
     }
 
-    // Apply filters if provided
     if (categoryFilter && categoryFilter !== 'all') {
       reportsList = reportsList.filter(r => r.category === categoryFilter)
     }
@@ -43,4 +43,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-
