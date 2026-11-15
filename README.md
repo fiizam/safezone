@@ -1,55 +1,95 @@
-# SafeZone: Pemantauan Keamanan Jalan Malam & Rute Pos Aman
+# SafeZone
 
-SafeZone adalah aplikasi web pemantauan keamanan jalan raya pada malam hari berbasis laporan warga (*crowdsourced street-safety intelligence*). Aplikasi ini membantu pengendara malam dan pejalan kaki mengetahui titik rawan kejahatan, lampu penerangan jalan umum (PJU) yang padam, serta menemukan rute jalan raya tercepat menuju tempat berlindung 24 jam (*Safe Haven* seperti Kantor Polisi, SPBU, dan Minimarket 24 Jam).
+**Night-commute street safety map and 24/7 safe haven finder for Indonesia.**
 
-## Fitur Utama
+SafeZone helps night riders and pedestrians spot dangerous road segments, broken streetlights, and quiet streets before riding through them. When an emergency happens, it calculates the fastest road route to the nearest 24-hour safe haven (police stations, gas stations, clinics, or convenience stores) and generates a ready-to-send WhatsApp SOS alert with live GPS coordinates.
 
-1. **Cakupan Multi-Kota Indonesia**:
-   - Mendukung pemantauan wilayah **Jakarta & Sekitarnya, Bandung Raya, Surabaya, Yogyakarta, Semarang, Medan**, serta tampilan **Seluruh Indonesia** dengan deteksi lokasi GPS pengguna.
-2. **Peta Taktis Interaktif & Pin Beranimasi**:
-   - Dibangun menggunakan **Leaflet & OpenStreetMap** dengan kanvas peta gelap berfokus kontras tinggi.
-   - Dilengkapi indikator visual spesifik: radar merah untuk titik bahaya tinggi (`Begal` / `Geng Motor`), pendaran kuning untuk jalan gelap/sepi (`PJU Mati`), perisai hijau untuk `Pos Aman 24 Jam`, serta sonar biru untuk posisi GPS pengguna.
-   - Pencarian instan jalan/pos dengan *smart dropdown* yang langsung menggerakkan kamera peta (*flyTo*) ke titik terpilih.
-3. **Navigasi Rute Jalan Raya Asli (OSRM Street Routing)**:
-   - Menggambar jalur *polyline* langsung mengikuti lekukan jalan raya menggunakan **OSRM Routing API** (dengan *fallback* otomatis ke kalkulasi geospasial Haversine), lengkap dengan estimasi waktu tempuh motor dan jalan kaki.
-4. **Tombol Darurat SOS WhatsApp**:
-   - Mengambil koordinat GPS aktif pengguna, mencari **Pos Aman 24 Jam terdekat** secara otomatis, dan menyusun pesan darurat siap kirim melalui WhatsApp lengkap dengan tautan Google Maps.
-5. **Validasi Komunitas & Status Penyelesaian ("Sudah Aman")**:
-   - Warga dapat memvalidasi laporan bahaya (*upvote*) maupun menandai titik yang sudah diperbaiki/kondusif (`Sudah Aman`), dilengkapi proteksi *localStorage* agar tidak terjadi duplikasi suara dari perangkat yang sama.
+---
 
-## Teknologi yang Digunakan
+## What It Does
 
-- **Framework**: [Nuxt 3](https://nuxt.com/) (Vue 3 Composition API, TypeScript, Nitro Server Engine)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Peta & Geospasial**: [Leaflet.js](https://leafletjs.com/), OpenStreetMap, & OSRM Routing API
-- **Database & ORM**: [Neon Serverless PostgreSQL](https://neon.tech/) & [Drizzle ORM](https://orm.drizzle.team/)
+- **Nationwide Deep-Area Radar**: Covers 13 major Indonesian metropolitan areas and reaches down to local villages, subdistricts, and residential streets using OpenStreetMap Overpass and Nominatim reverse geocoding.
+- **Tactical Night Map**: High-contrast dark map with custom visual pins:
+  - **Red Radar Pulse**: High-risk crime or gang activity (`Begal` / `Geng Motor`).
+  - **Amber Flicker**: Unlit roads, broken streetlights (`PJU Mati`), or isolated paths.
+  - **Green Shield**: Active 24/7 safe havens (`Polsek`, `SPBU`, `Puskesmas`, `Minimarket`).
+  - **Blue Sonar**: Draggable user position and live GPS tracker.
+- **Real Street Routing**: Draws turn-by-turn road polylines to any safe haven via the OSRM Routing API (with automatic Haversine distance fallback) and estimates motorcycle and walking travel times.
+- **One-Click WhatsApp SOS**: Captures your current GPS coordinates, attaches the nearest safe haven name and distance, and opens WhatsApp with a pre-filled Google Maps emergency link.
+- **Live Road Weather Advisory**: Pulls real-time temperature, rain, and visibility conditions from Open-Meteo to warn riders about wet asphalt and reduced headlight reflection at night.
+- **Community Validation & Resolution**: Riders can upvote active hazards or mark fixed roads as safe (`Sudah Aman`), with client-side deduplication to prevent spam.
 
-## Cara Menjalankan di Lokal
+---
 
-1. **Instal dependensi**:
-   ```bash
-   pnpm install
-   ```
+## Tech Stack
 
-2. **Konfigurasi Environment Variable (`.env`)**:
-   Salin `.env.example` menjadi `.env` dan masukkan URL koneksi PostgreSQL Neon Anda:
-   ```env
-   DATABASE_URL="postgresql://user:password@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
-   ```
-   *(Catatan: Jika `DATABASE_URL` belum diisi, aplikasi tetap dapat berjalan normal menggunakan penyimpanan memori lokal bawaan).*
+| Layer | Technology |
+| :--- | :--- |
+| **Framework** | [Nuxt 3](https://nuxt.com/) (Vue 3 Composition API, TypeScript, Nitro Server) |
+| **Styling** | [Tailwind CSS](https://tailwindcss.com/) |
+| **Map & Routing** | [Leaflet](https://leafletjs.com/), OpenStreetMap, OSRM, Overpass, Nominatim |
+| **Weather Data** | [Open-Meteo API](https://open-meteo.com/) |
+| **Database & ORM** | [Neon Serverless PostgreSQL](https://neon.tech/) & [Drizzle ORM](https://orm.drizzle.team/) |
 
-3. **Inisialisasi Data Awal Database (Opsional)**:
-   ```bash
-   pnpm db:seed
-   ```
+---
 
-4. **Jalankan Server Pengembangan**:
-   ```bash
-   pnpm dev
-   ```
-   Buka `http://localhost:3000` di peramban Anda.
+## Quick Start
 
-5. **Build untuk Produksi / Vercel**:
-   ```bash
-   pnpm build
-   ```
+### 1. Install dependencies
+
+```bash
+pnpm install
+```
+
+### 2. Set up environment variables
+
+Copy `.env.example` to `.env` and add your Neon PostgreSQL connection string:
+
+```env
+DATABASE_URL="postgresql://user:password@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+```
+
+> If `DATABASE_URL` is omitted, SafeZone automatically falls back to built-in local memory data so you can test the app right away.
+
+### 3. Seed the database & start the dev server
+
+```bash
+pnpm db:seed
+pnpm dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+---
+
+## Project Structure
+
+```text
+safezone/
+├── components/
+│   ├── Navbar.vue                      # Command bar, region switcher, and SOS trigger
+│   ├── SafetyMap.client.vue            # Interactive Leaflet map, address search, and OSRM routing
+│   ├── IncidentAnalyticsCard.vue       # Area hazard metrics and validation sparkline
+│   ├── SafeHavenHubCard.vue            # Nearest 24/7 safe havens and emergency 110 dialer
+│   ├── LatestReportAndTrendsCard.vue   # Scrollable local reports and category filters
+│   ├── ReportModal.vue                 # New hazard submission modal with GPS/map picker
+│   └── InfoPopover.vue                 # Viewport-aware contextual help popover
+├── pages/
+│   └── index.vue                       # Main dashboard and radar state orchestration
+├── server/
+│   ├── api/                            # Nitro REST endpoints (/api/reports, /api/havens)
+│   └── db/                             # Drizzle schema, Neon connection, and seed script
+└── utils/
+    ├── geo.ts                          # Overpass radar, Nominatim geocoder, OSRM & Haversine math
+    └── time.ts                         # Relative timestamp formatter
+```
+
+---
+
+## Scripts
+
+| Command | Description |
+| :--- | :--- |
+| `pnpm dev` | Start the local development server on port `3000` |
+| `pnpm build` | Build the application for production / Vercel deployment |
+| `pnpm db:seed` | Create tables and seed nationwide Indonesian hazard & haven data |
