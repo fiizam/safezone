@@ -4,6 +4,8 @@
     pkgs.nodejs_20
     pkgs.nodePackages.pnpm
     pkgs.curl
+    pkgs.gnutar
+    pkgs.gzip
   ];
   idx = {
     extensions = [
@@ -12,7 +14,7 @@
     ];
     workspace = {
       onCreate = {
-        setup = "pnpm install && (curl -fsSL https://antigravity.google/cli/install.sh | bash || true)";
+        setup = "pnpm install && bash .devcontainer/setup-cloud.sh";
       };
     };
     previews = {
