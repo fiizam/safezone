@@ -10,23 +10,23 @@
         />
       </div>
 
-      <div v-if="sortedHavens.length > 1" class="flex items-center gap-1">
+      <div v-if="sortedHavens.length > 1" class="flex items-center gap-1.5">
         <button
           type="button"
           @click="prevHaven"
           aria-label="Pos sebelumnya"
-          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors"
+          class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-sm transition-colors"
         >
           ‹
         </button>
-        <span class="text-xs font-semibold text-slate-600 px-1.5 tabular-nums">
+        <span class="text-xs font-semibold text-slate-600 px-1 tabular-nums">
           {{ selectedIndex + 1 }}/{{ sortedHavens.length }}
         </span>
         <button
           type="button"
           @click="nextHaven"
           aria-label="Pos berikutnya"
-          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors"
+          class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-sm transition-colors"
         >
           ›
         </button>
@@ -65,7 +65,7 @@
           type="button"
           @click="$emit('drawRoute', currentItem.haven)"
           :class="[
-            'min-h-[40px] py-2 px-3 rounded-xl font-bold text-xs transition-colors',
+            'min-h-[42px] py-2 px-3 rounded-xl font-bold text-xs transition-colors',
             activeRouteHavenId === currentItem.haven.id
               ? 'bg-slate-900 text-white'
               : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
@@ -78,7 +78,7 @@
           :href="`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${currentItem.haven.latitude},${currentItem.haven.longitude}&travelmode=two-wheeler`"
           target="_blank"
           rel="noopener noreferrer"
-          class="min-h-[40px] py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-xs transition-colors flex items-center justify-center"
+          class="min-h-[42px] py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-xs transition-colors flex items-center justify-center"
         >
           Google Maps
         </a>
@@ -96,7 +96,7 @@
       <span class="text-slate-600 font-medium">Panggilan Darurat Polisi</span>
       <a
         href="tel:110"
-        class="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-colors"
+        class="min-h-[38px] px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-colors inline-flex items-center"
       >
         Hubungi 110
       </a>

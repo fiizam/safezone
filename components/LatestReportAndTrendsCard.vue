@@ -5,7 +5,7 @@
         <h2 class="font-bold text-sm sm:text-base tracking-tight text-slate-900">Laporan Warga</h2>
         <InfoPopover
           title="Laporan Warga"
-          content="Daftar laporan jalan rawan terbaru di wilayah ini. Klik baris laporan untuk menyorot titiknya di peta, atau gunakan tombol kategori di bawah untuk menyaring."
+          content="Daftar laporan jalan rawan terdekat di wilayah ini. Klik baris laporan untuk membuka detail pinnya di peta, atau gunakan tombol kategori di bawah untuk menyaring."
           label="Penjelasan daftar laporan warga"
         />
       </div>
@@ -13,13 +13,16 @@
       <button
         type="button"
         @click="$emit('openReportModal')"
-        class="px-3 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-colors"
+        class="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-colors"
       >
         + Tambah
       </button>
     </div>
 
-    <div v-if="filteredRecentReports.length" class="space-y-2 my-1">
+    <div
+      v-if="filteredRecentReports.length"
+      class="space-y-2 my-1 max-h-[210px] overflow-y-auto pr-1"
+    >
       <button
         v-for="item in filteredRecentReports"
         :key="item.id"
@@ -43,20 +46,20 @@
               {{ item.title }}
             </span>
           </div>
-          <p class="text-[11px] text-slate-600 truncate pl-4">
+          <p class="text-xs text-slate-600 truncate pl-4">
             {{ item.description }}
           </p>
         </div>
 
         <div class="flex flex-col items-end gap-1 shrink-0">
-          <span class="text-[11px] font-semibold text-slate-700 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 tabular-nums">
+          <span class="text-xs font-semibold text-slate-700 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 tabular-nums">
             {{ item.upvotes }} validasi
           </span>
           <span
             v-if="(item.resolvedCount || 0) >= 3"
-            class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200"
+            class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200"
           >
-            ✓ Mulai Kondusif
+            ✓ Kondusif
           </span>
         </div>
       </button>
@@ -71,12 +74,12 @@
 
     <div class="pt-3 mt-2 border-t border-slate-100">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-[11px] font-semibold text-slate-600">Saring Kategori Laporan</span>
+        <span class="text-xs font-semibold text-slate-600">Saring Kategori Laporan</span>
         <button
           v-if="activeCategory !== 'all'"
           type="button"
           @click="$emit('selectCategory', 'all')"
-          class="text-[11px] font-bold text-emerald-700 hover:underline"
+          class="text-xs font-bold text-emerald-700 hover:underline"
         >
           Reset
         </button>
@@ -89,7 +92,7 @@
           @click="$emit('selectCategory', activeCategory === cat.key ? 'all' : cat.key)"
           :aria-pressed="activeCategory === cat.key"
           :class="[
-            'px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors tabular-nums',
+            'min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors tabular-nums',
             activeCategory === cat.key
               ? 'bg-slate-900 border-slate-900 text-white'
               : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
@@ -122,7 +125,7 @@ const filteredRecentReports = computed(() => {
     props.activeCategory === 'all'
       ? props.reports
       : props.reports.filter(r => r.category === props.activeCategory)
-  return list.slice(0, 3)
+  return list.slice(0, 12)
 })
 
 const categoryPills = computed(() => {

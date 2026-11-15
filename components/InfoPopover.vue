@@ -12,7 +12,7 @@
       @blur="hidePopover"
       :aria-expanded="isOpen"
       :aria-label="label"
-      class="w-5 h-5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus:text-slate-800 inline-flex items-center justify-center transition-colors"
+      class="w-7 h-7 -m-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 focus:text-slate-900 inline-flex items-center justify-center transition-colors"
     >
       <svg
         aria-hidden="true"
@@ -45,10 +45,10 @@
 
         <div class="relative z-10">
           <div class="flex items-center gap-1.5 mb-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
             <span class="text-xs font-bold text-slate-900 tracking-tight">{{ title }}</span>
           </div>
-          <p class="text-[11px] text-slate-600 leading-relaxed font-normal">
+          <p class="text-xs text-slate-600 leading-relaxed font-normal">
             {{ content }}
           </p>
         </div>
@@ -100,7 +100,7 @@ function updatePosition() {
     left = viewportWidth - popoverWidth - margin
   }
 
-  const top = rect.bottom + 10
+  const top = rect.bottom + 8
   const arrowLeft = Math.max(12, Math.min(popoverWidth - 20, triggerCenter - left - 6))
 
   floatingStyle.top = `${Math.round(top)}px`
