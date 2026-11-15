@@ -2,6 +2,10 @@
 
 **Night-commute street safety map and 24/7 safe haven finder for Indonesia.**
 
+**Live Demo:** [https://safezone-site.vercel.app](https://safezone-site.vercel.app)
+
+![SafeZone Live Dashboard Showcase](./public/safezone-showcase.png)
+
 SafeZone helps night riders and pedestrians spot dangerous road segments, broken streetlights, and quiet streets before riding through them. When an emergency happens, it calculates the fastest road route to the nearest 24-hour safe haven (police stations, gas stations, clinics, or convenience stores) and generates a ready-to-send WhatsApp SOS alert with live GPS coordinates.
 
 ---
