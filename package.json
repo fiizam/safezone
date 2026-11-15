@@ -14,7 +14,8 @@
     "postinstall": "nuxt prepare",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx server/db/seed.ts",
-    "remote": "agy --remote-control",
+    "hp": "bash hp.sh",
+    "remote": "bash hp.sh",
     "remote:start": "agy remote-control start --name safezone-cloud"
   },
   "dependencies": {
