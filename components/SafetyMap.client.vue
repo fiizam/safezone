@@ -1,11 +1,9 @@
 <template>
-  <div class="relative w-full h-[380px] sm:h-[420px] rounded-3xl overflow-hidden border border-slate-200/80 shadow-card bg-[#0b0f19]">
-    <div ref="mapContainer" class="w-full h-full z-0" role="region" aria-label="Peta interaktif titik rawan dan tempat berlindung 24 jam"></div>
-
-    <div class="absolute top-3.5 left-3.5 right-16 sm:right-auto z-[400] flex flex-col gap-1.5">
-      <div class="flex flex-wrap items-center gap-2">
-        <div class="relative flex items-center bg-white/95 backdrop-blur-md rounded-2xl px-3.5 py-2 border border-slate-200/90 shadow-md">
-          <label for="map-search-input" class="sr-only">Cari jalan atau lokasi</label>
+  <div class="w-full rounded-3xl border border-slate-200/90 shadow-card bg-white overflow-hidden flex flex-col">
+    <div class="px-3.5 sm:px-4 py-2.5 bg-white border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-2.5 relative z-[450]">
+      <div class="relative flex-1 min-w-[220px] sm:max-w-md">
+        <div class="flex items-center bg-slate-50 hover:bg-slate-100/80 focus-within:bg-white focus-within:border-slate-900 rounded-xl px-3 py-2 border border-slate-200/90 transition-colors">
+          <label for="map-search-input" class="sr-only">Cari alamat, desa, kecamatan, atau jalan di Indonesia</label>
           <svg aria-hidden="true" class="w-4 h-4 text-slate-500 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -16,159 +14,242 @@
             type="search"
             @focus="isSearchDropdownOpen = true"
             @keydown.enter.prevent="selectFirstSearchResult"
-            placeholder="Cari jalan, begal, atau pos..."
-            class="bg-transparent text-xs text-slate-900 placeholder-slate-500 focus:outline-none w-40 sm:w-56 font-medium"
+            placeholder="Ketik alamat, desa, kecamatan, atau nama jalan..."
+            class="bg-transparent text-xs text-slate-900 placeholder-slate-500 focus:outline-none w-full font-medium"
           />
+          <span
+            v-if="isSearchingPlaces"
+            class="w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin ml-1.5 shrink-0"
+            aria-hidden="true"
+          ></span>
           <button
-            v-if="searchQuery"
+            v-else-if="searchQuery"
             type="button"
             @click="clearSearch"
             aria-label="Hapus pencarian"
-            class="text-slate-500 hover:text-slate-800 text-xs ml-1.5 px-1 font-bold"
+            class="text-slate-500 hover:text-slate-900 text-xs ml-1.5 px-1 font-bold"
           >
             ×
           </button>
         </div>
 
+        <div
+          v-if="searchQuery.trim() && isSearchDropdownOpen"
+          class="absolute left-0 right-0 top-11 z-[900] bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden"
+        >
+          <div class="max-h-64 overflow-y-auto divide-y divide-slate-100">
+            <div v-if="remotePlaces.length > 0">
+              <div class="px-3.5 py-1.5 bg-emerald-50/90 text-[10px] font-bold uppercase tracking-wider text-emerald-900 flex items-center justify-between">
+                <span>Alamat, Desa & Jalan di Indonesia</span>
+                <span>Klik untuk Pindai</span>
+              </div>
+              <button
+                v-for="place in remotePlaces"
+                :key="`place-${place.id}`"
+                type="button"
+                @click="handleSelectRemotePlace(place)"
+                class="w-full px-3.5 py-2.5 text-left hover:bg-emerald-50/80 transition-colors flex items-start gap-2.5"
+              >
+                <svg aria-hidden="true" class="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-bold text-slate-900 truncate">{{ place.name }}</div>
+                  <div class="text-[11px] text-slate-500 truncate">{{ place.displayName }}</div>
+                </div>
+              </button>
+            </div>
+
+            <div v-if="searchResults.length > 0">
+              <div class="px-3.5 py-1.5 bg-slate-50/90 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Titik Pantau Terdeteksi
+              </div>
+              <button
+                v-for="res in searchResults"
+                :key="`${res.kind}-${res.id}`"
+                type="button"
+                @click="handleSelectSearchResult(res)"
+                class="w-full px-3.5 py-2.5 text-left hover:bg-slate-100/90 transition-colors flex items-start gap-2.5"
+              >
+                <span
+                  :class="[
+                    'w-2 h-2 rounded-full mt-1.5 shrink-0',
+                    res.kind === 'haven' ? 'bg-emerald-500' : 'bg-rose-500'
+                  ]"
+                ></span>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-bold text-slate-900 truncate">{{ res.title }}</div>
+                  <div class="text-[11px] text-slate-600 truncate">{{ res.subtitle }}</div>
+                </div>
+              </button>
+            </div>
+
+            <div
+              v-if="isSearchingPlaces && remotePlaces.length === 0"
+              class="px-3.5 py-3 text-xs text-slate-600 flex items-center justify-center gap-2"
+            >
+              <span class="w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></span>
+              <span>Mencari alamat "{{ searchQuery }}" di seluruh Indonesia...</span>
+            </div>
+
+            <div
+              v-else-if="searchResults.length === 0 && remotePlaces.length === 0 && !isSearchingPlaces"
+              class="px-3.5 py-3 text-xs text-slate-600 text-center"
+            >
+              Ketik nama jalan, kelurahan/desa, atau kecamatan lalu tekan Enter.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
         <button
           v-if="activeCategory !== 'all'"
           type="button"
           @click="$emit('update:category', 'all')"
-          class="bg-slate-900/95 hover:bg-slate-800 text-white backdrop-blur-md rounded-2xl px-3 py-2 text-xs font-semibold border border-slate-700 shadow-md flex items-center gap-1.5 transition-colors"
-          title="Hapus filter kategori"
+          class="min-h-[36px] bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl px-3 py-1.5 text-xs font-semibold border border-slate-200 flex items-center gap-1.5 transition-colors"
+          title="Hapus saringan kategori"
         >
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>Filter: {{ categoryName(activeCategory) }}</span>
-          <span class="text-slate-300 font-bold ml-0.5">×</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>{{ categoryName(activeCategory) }}</span>
+          <span class="text-slate-500 font-bold ml-0.5">×</span>
+        </button>
+
+        <button
+          type="button"
+          @click="locateUser"
+          :disabled="isLocating"
+          aria-label="Deteksi lokasi GPS alamat saya sekarang"
+          title="Deteksi lokasi GPS saya sekarang"
+          class="min-h-[36px] px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200/90 flex items-center gap-1.5 text-xs font-bold transition-colors"
+        >
+          <span v-if="isLocating" class="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+          <svg v-else aria-hidden="true" class="w-3.5 h-3.5 text-sky-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="3 11 22 2 13 21 11 13 3 11" />
+          </svg>
+          <span>{{ isLocating ? 'Melacak...' : 'Lokasi Saya' }}</span>
+        </button>
+
+        <button
+          type="button"
+          @click="scanCurrentMapArea"
+          :disabled="isScanningArea"
+          aria-label="Pindai titik rawan, laporan warga, dan pos aman di area peta ini"
+          title="Pindai titik rawan dan pos aman di area peta ini"
+          class="min-h-[36px] px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 flex items-center gap-1.5 text-xs font-semibold transition-colors disabled:opacity-70"
+        >
+          <span
+            v-if="isScanningArea"
+            class="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin shrink-0"
+          ></span>
+          <svg
+            v-else
+            aria-hidden="true"
+            class="w-3.5 h-3.5 text-emerald-400 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="12" y1="3" x2="12" y2="6"/>
+          </svg>
+          <span>{{ isScanningArea ? 'Memindai...' : 'Pindai Area Ini' }}</span>
+        </button>
+
+        <button
+          type="button"
+          @click="routeToNearestHaven"
+          aria-label="Tampilkan rute ke Pos Aman terdekat"
+          title="Rute ke Pos Aman terdekat"
+          class="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-700 flex items-center gap-1.5 text-xs font-bold transition-colors"
+        >
+          <span class="w-2 h-2 rounded-full bg-white shrink-0"></span>
+          <span>Rute Pos Terdekat</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="relative w-full h-[400px] sm:h-[450px] bg-[#0b0f19]">
+      <div
+        ref="mapContainer"
+        class="w-full h-full z-0"
+        role="region"
+        aria-label="Peta interaktif titik rawan dan tempat berlindung 24 jam seluruh Indonesia"
+      ></div>
+
+      <div
+        v-if="activeRouteInfo"
+        class="absolute bottom-3.5 left-3.5 right-16 sm:right-auto sm:max-w-md z-[400] bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-emerald-300 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+              {{ isFetchingRoute ? 'Menghitung Rute Jalan...' : activeRouteInfo.isRoadRoute ? 'Rute Jalan Raya Aktif' : 'Rute Kompas Aktif' }}
+            </span>
+          </div>
+          <p class="text-xs font-bold text-slate-900 truncate">{{ activeRouteInfo.haven.name }}</p>
+          <p class="text-[11px] text-slate-600 font-medium mt-0.5">
+            Jarak tempuh: <strong class="text-slate-900">{{ activeRouteInfo.distanceLabel }}</strong>
+            · Est. motor <strong class="text-slate-900">{{ activeRouteInfo.motorMinutes }} mnt</strong>
+            (jalan kaki {{ activeRouteInfo.walkMinutes }} mnt)
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <a
+            :href="`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${activeRouteInfo.haven.latitude},${activeRouteInfo.haven.longitude}&travelmode=two-wheeler`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+          >
+            Google Maps
+          </a>
+          <button
+            type="button"
+            @click="$emit('clearRoute')"
+            class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+            aria-label="Tutup tampilan rute di peta"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+
+      <div class="absolute bottom-3.5 right-3.5 z-[400] flex flex-col bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
+        <button
+          type="button"
+          @click="zoomIn"
+          aria-label="Perbesar peta"
+          title="Perbesar peta"
+          class="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-slate-100 transition-colors border-b border-slate-200 font-bold text-base"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          @click="zoomOut"
+          aria-label="Perkecil peta"
+          title="Perkecil peta"
+          class="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-slate-100 transition-colors font-bold text-base"
+        >
+          −
         </button>
       </div>
 
       <div
-        v-if="searchQuery.trim() && isSearchDropdownOpen"
-        class="w-64 sm:w-72 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden"
+        v-if="isPickingLocation"
+        class="absolute top-3.5 left-1/2 -translate-x-1/2 z-[400] bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold border border-slate-700"
+        role="status"
       >
-        <div v-if="searchResults.length > 0" class="max-h-52 overflow-y-auto divide-y divide-slate-100">
-          <button
-            v-for="res in searchResults"
-            :key="`${res.kind}-${res.id}`"
-            type="button"
-            @click="handleSelectSearchResult(res)"
-            class="w-full px-3.5 py-2.5 text-left hover:bg-slate-100/90 transition-colors flex items-start gap-2.5"
-          >
-            <span
-              :class="[
-                'w-2 h-2 rounded-full mt-1.5 shrink-0',
-                res.kind === 'haven' ? 'bg-emerald-500' : 'bg-rose-500'
-              ]"
-            ></span>
-            <div class="min-w-0 flex-1">
-              <div class="text-xs font-bold text-slate-900 truncate">{{ res.title }}</div>
-              <div class="text-[11px] text-slate-600 truncate">{{ res.subtitle }}</div>
-            </div>
-          </button>
-        </div>
-        <div v-else class="px-3.5 py-3 text-xs text-slate-600 text-center">
-          Tidak ditemukan titik dengan kata kunci "{{ searchQuery }}" di wilayah ini.
-        </div>
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>Klik pada peta untuk memilih titik koordinat laporan</span>
       </div>
-    </div>
-
-    <div class="absolute top-3.5 right-3.5 z-[400] flex flex-col sm:flex-row items-center gap-2">
-      <button
-        type="button"
-        @click="locateUser"
-        :disabled="isLocating"
-        aria-label="Temukan posisi GPS saya"
-        title="Temukan posisi GPS saya"
-        class="w-11 h-11 rounded-2xl bg-white/95 backdrop-blur-md text-slate-800 hover:text-slate-950 hover:bg-white border border-slate-200/90 shadow-md flex items-center justify-center transition-colors"
-      >
-        <span v-if="isLocating" class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-        <svg v-else aria-hidden="true" class="w-4 h-4 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <polygon points="3 11 22 2 13 21 11 13 3 11" />
-        </svg>
-      </button>
-
-      <button
-        type="button"
-        @click="routeToNearestHaven"
-        aria-label="Tampilkan rute ke Pos Aman terdekat"
-        title="Rute ke Pos Aman terdekat"
-        class="h-11 px-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-700 shadow-md flex items-center gap-1.5 text-xs font-bold transition-colors"
-      >
-        <span class="w-2 h-2 rounded-full bg-white"></span>
-        <span class="hidden md:inline">Rute Pos Terdekat</span>
-      </button>
-    </div>
-
-    <div
-      v-if="activeRouteInfo"
-      class="absolute bottom-3.5 left-3.5 right-16 sm:right-auto sm:max-w-md z-[400] bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-emerald-300 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-      role="status"
-      aria-live="polite"
-    >
-      <div class="min-w-0">
-        <div class="flex items-center gap-1.5 mb-0.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-            {{ isFetchingRoute ? 'Menghitung Rute Jalan...' : activeRouteInfo.isRoadRoute ? 'Rute Jalan Raya Aktif' : 'Rute Kompas Aktif' }}
-          </span>
-        </div>
-        <p class="text-xs font-bold text-slate-900 truncate">{{ activeRouteInfo.haven.name }}</p>
-        <p class="text-[11px] text-slate-600 font-medium mt-0.5">
-          Jarak tempuh: <strong class="text-slate-900">{{ activeRouteInfo.distanceLabel }}</strong>
-          · Est. motor <strong class="text-slate-900">{{ activeRouteInfo.motorMinutes }} mnt</strong>
-          (jalan kaki {{ activeRouteInfo.walkMinutes }} mnt)
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2 shrink-0">
-        <a
-          :href="`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${activeRouteInfo.haven.latitude},${activeRouteInfo.haven.longitude}&travelmode=two-wheeler`"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
-        >
-          Google Maps
-        </a>
-        <button
-          type="button"
-          @click="$emit('clearRoute')"
-          class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
-          aria-label="Tutup tampilan rute di peta"
-        >
-          Tutup
-        </button>
-      </div>
-    </div>
-
-    <div class="absolute bottom-3.5 right-3.5 z-[400] flex flex-col bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
-      <button
-        type="button"
-        @click="zoomIn"
-        aria-label="Perbesar peta"
-        title="Perbesar peta"
-        class="w-11 h-11 flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-slate-100 transition-colors border-b border-slate-200 font-bold text-base"
-      >
-        +
-      </button>
-      <button
-        type="button"
-        @click="zoomOut"
-        aria-label="Perkecil peta"
-        title="Perkecil peta"
-        class="w-11 h-11 flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-slate-100 transition-colors font-bold text-base"
-      >
-        −
-      </button>
-    </div>
-
-    <div
-      v-if="isPickingLocation"
-      class="absolute top-16 left-1/2 -translate-x-1/2 z-[400] bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold border border-slate-700"
-      role="status"
-    >
-      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-      <span>Klik pada peta untuk memilih titik koordinat laporan</span>
     </div>
   </div>
 </template>
@@ -183,7 +264,9 @@ import {
   estimateMotorMinutes,
   estimateWalkMinutes,
   fetchOsrmStreetRoute,
-  type Coordinates
+  searchIndonesianPlaces,
+  type Coordinates,
+  type GeocodedPlace
 } from '~/utils/geo'
 
 interface SearchItem {
@@ -206,6 +289,7 @@ const props = withDefaults(
     activeRouteHaven?: SafeHaven | null
     upvotedIds?: number[]
     resolvedIds?: number[]
+    isScanningArea?: boolean
   }>(),
   {
     activeCategory: 'all',
@@ -213,7 +297,8 @@ const props = withDefaults(
     isPickingLocation: false,
     activeRouteHaven: null,
     upvotedIds: () => [],
-    resolvedIds: () => []
+    resolvedIds: () => [],
+    isScanningArea: false
   }
 )
 
@@ -225,11 +310,21 @@ const emit = defineEmits<{
   (e: 'updateUserCoords', coords: Coordinates, isLiveGps: boolean): void
   (e: 'drawRoute', haven: SafeHaven): void
   (e: 'clearRoute'): void
+  (e: 'scanArea', coords: Coordinates, placeLabel?: string, isSilent?: boolean): void
 }>()
 
 const mapContainer = ref<HTMLElement | null>(null)
 const searchQuery = ref('')
 const isSearchDropdownOpen = ref(false)
+const remotePlaces = ref<GeocodedPlace[]>([])
+const isSearchingPlaces = ref(false)
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let mapMoveDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let lastAutoScanCoords: Coordinates = { ...props.userCoords }
+
+const openedPopupTarget = ref<{ kind: 'report' | 'haven'; id: number } | null>(null)
+let isRebuildingMarkers = false
+
 let map: any = null
 let L: any = null
 let reportsLayerGroup: any = null
@@ -258,6 +353,15 @@ function categoryName(cat: string): string {
   return names[cat] || cat
 }
 
+function escapeHtml(raw: string): string {
+  return String(raw || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 const searchResults = computed<SearchItem[]>(() => {
   const q = searchQuery.value.toLowerCase().trim()
   if (!q) return []
@@ -284,34 +388,98 @@ const searchResults = computed<SearchItem[]>(() => {
       lng: h.longitude
     }))
 
-  return [...matchedReports, ...matchedHavens].slice(0, 6)
+  return [...matchedReports, ...matchedHavens].slice(0, 5)
+})
+
+watch(searchQuery, (newVal) => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+  const q = newVal.trim()
+  if (q.length < 3) {
+    remotePlaces.value = []
+    isSearchingPlaces.value = false
+    return
+  }
+
+  isSearchingPlaces.value = true
+  searchDebounceTimer = setTimeout(async () => {
+    const places = await searchIndonesianPlaces(q)
+    if (searchQuery.value.trim() === q) {
+      remotePlaces.value = places
+      isSearchingPlaces.value = false
+    }
+  }, 320)
 })
 
 function clearSearch() {
   searchQuery.value = ''
+  remotePlaces.value = []
   isSearchDropdownOpen.value = false
-  renderMarkers(true)
+  renderMarkers(false)
 }
 
-function handleSelectSearchResult(item: SearchItem) {
-  isSearchDropdownOpen.value = false
+function focusPin(kind: 'report' | 'haven', id: number, lat: number, lng: number) {
   if (!map) return
-  map.flyTo([item.lat, item.lng], 16, { duration: 0.9 })
+  openedPopupTarget.value = { kind, id }
+  lastAutoScanCoords = { lat, lng }
+  map.flyTo([lat, lng], 16, { duration: 0.85 })
   setTimeout(() => {
-    const marker =
-      item.kind === 'report'
-        ? reportMarkersMap.get(item.id)
-        : havenMarkersMap.get(item.id)
+    const marker = kind === 'report' ? reportMarkersMap.get(id) : havenMarkersMap.get(id)
     if (marker) {
       marker.openPopup()
     }
   }, 600)
 }
 
-function selectFirstSearchResult() {
+function handleSelectSearchResult(item: SearchItem) {
+  isSearchDropdownOpen.value = false
+  focusPin(item.kind, item.id, item.lat, item.lng)
+}
+
+function handleSelectRemotePlace(place: GeocodedPlace) {
+  isSearchDropdownOpen.value = false
+  searchQuery.value = ''
+  remotePlaces.value = []
+  openedPopupTarget.value = null
+  const coords = { lat: place.lat, lng: place.lng }
+  lastAutoScanCoords = { ...coords }
+  if (map) {
+    map.flyTo([place.lat, place.lng], 15, { duration: 1.0 })
+  }
+  emit('scanArea', coords, place.name, false)
+}
+
+async function selectFirstSearchResult() {
+  if (remotePlaces.value.length > 0) {
+    handleSelectRemotePlace(remotePlaces.value[0])
+    return
+  }
   if (searchResults.value.length > 0) {
     handleSelectSearchResult(searchResults.value[0])
+    return
   }
+  const q = searchQuery.value.trim()
+  if (q.length >= 3) {
+    isSearchingPlaces.value = true
+    const places = await searchIndonesianPlaces(q)
+    isSearchingPlaces.value = false
+    if (places.length > 0) {
+      handleSelectRemotePlace(places[0])
+    }
+  }
+}
+
+function scanCurrentMapArea() {
+  openedPopupTarget.value = null
+  if (!map) {
+    emit('scanArea', props.userCoords, undefined, false)
+    return
+  }
+  const center = map.getCenter()
+  const coords = { lat: center.lat, lng: center.lng }
+  lastAutoScanCoords = { ...coords }
+  emit('scanArea', coords, undefined, false)
 }
 
 const activeRouteInfo = computed(() => {
@@ -356,6 +524,12 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+  if (mapMoveDebounceTimer) {
+    clearTimeout(mapMoveDebounceTimer)
+  }
   if (map) {
     map.remove()
     map = null
@@ -389,10 +563,36 @@ function initMap() {
 
   map.on('click', (e: any) => {
     isSearchDropdownOpen.value = false
+    openedPopupTarget.value = null
     const { lat, lng } = e.latlng
     if (props.isPickingLocation) {
       setPickerLocation(lat, lng)
       emit('selectLocation', { lat, lng })
+    }
+  })
+
+  map.on('popupclose', () => {
+    if (!isRebuildingMarkers) {
+      openedPopupTarget.value = null
+    }
+  })
+
+  map.on('moveend', () => {
+    if (!map || openedPopupTarget.value) return
+    const zoom = map.getZoom()
+    if (zoom < 12) return
+
+    const center = map.getCenter()
+    const currentCenter = { lat: center.lat, lng: center.lng }
+    const movedMeters = calculateDistanceMeters(lastAutoScanCoords, currentCenter)
+
+    if (movedMeters > 1800) {
+      if (mapMoveDebounceTimer) clearTimeout(mapMoveDebounceTimer)
+      mapMoveDebounceTimer = setTimeout(() => {
+        if (openedPopupTarget.value) return
+        lastAutoScanCoords = { ...currentCenter }
+        emit('scanArea', currentCenter, undefined, true)
+      }, 700)
     }
   })
 
@@ -460,7 +660,7 @@ function createDangerPin(category: string, isResolved: boolean) {
     `,
     iconSize: [44, 52],
     iconAnchor: [22, 48],
-    popupAnchor: [0, -46]
+    popupAnchor: [0, -44]
   })
 }
 
@@ -497,7 +697,7 @@ function createWarningPin(category: string, isResolved: boolean) {
     `,
     iconSize: [40, 48],
     iconAnchor: [20, 44],
-    popupAnchor: [0, -42]
+    popupAnchor: [0, -40]
   })
 }
 
@@ -542,7 +742,7 @@ function createHavenPin(type: string) {
     `,
     iconSize: [44, 52],
     iconAnchor: [22, 48],
-    popupAnchor: [0, -46]
+    popupAnchor: [0, -44]
   })
 }
 
@@ -558,11 +758,15 @@ function renderUserMarker() {
     }).addTo(map)
 
     userMarker.bindPopup(`
-      <div class="p-3 bg-white text-slate-900 max-w-[220px]">
-        <div class="text-xs font-bold text-slate-900 mb-0.5">Titik Posisi Anda</div>
-        <p class="text-[11px] text-slate-600 leading-snug">Geser pin biru ini atau klik tombol GPS di kanan atas untuk memperbarui posisi awal rute.</p>
+      <div class="p-3.5 pr-6 bg-white text-slate-900 max-w-[225px]">
+        <div class="text-xs font-bold text-slate-900 mb-1">Titik Posisi Anda</div>
+        <p class="text-[11px] text-slate-600 leading-snug">Geser pin biru ini atau klik tombol Lokasi Saya di bilah atas peta untuk memindai area sekitar.</p>
       </div>
-    `, { className: 'safezone-light-popup' })
+    `, {
+      className: 'safezone-light-popup',
+      autoPanPaddingTopLeft: [20, 20],
+      autoPanPaddingBottomRight: [20, 50]
+    })
 
     userMarker.on('dragend', (e: any) => {
       const pos = e.target.getLatLng()
@@ -573,6 +777,9 @@ function renderUserMarker() {
 
 function renderMarkers(shouldFitBounds = false) {
   if (!map || !L || !reportsLayerGroup || !havensLayerGroup) return
+
+  const activePopup = openedPopupTarget.value
+  isRebuildingMarkers = true
 
   reportsLayerGroup.clearLayers()
   havensLayerGroup.clearLayers()
@@ -631,16 +838,16 @@ function renderMarkers(shouldFitBounds = false) {
 
       const popupHtml = `
         <div class="p-3.5 bg-white text-slate-900 max-w-[265px]">
-          <div class="flex items-center justify-between gap-2 mb-1.5">
+          <div class="flex items-center justify-between gap-2 pr-5 mb-2">
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${dangerBadgeClass}">
               ${dangerLabel}
             </span>
-            <span class="text-[10px] text-slate-500">
+            <span class="text-[10px] font-medium text-slate-500">
               ${formatRelativeTime(report.createdAt)}
             </span>
           </div>
-          <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${report.title}</h4>
-          <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${report.description}</p>
+          <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${escapeHtml(report.title)}</h4>
+          <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${escapeHtml(report.description)}</p>
           <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
             <button
               type="button"
@@ -665,7 +872,14 @@ function renderMarkers(shouldFitBounds = false) {
 
       marker.bindPopup(popupHtml, {
         className: 'safezone-light-popup',
-        maxWidth: 280
+        maxWidth: 275,
+        autoPan: true,
+        autoPanPaddingTopLeft: [20, 20],
+        autoPanPaddingBottomRight: [20, 56]
+      })
+
+      marker.on('popupopen', () => {
+        openedPopupTarget.value = { kind: 'report', id: report.id }
       })
 
       reportsLayerGroup.addLayer(marker)
@@ -690,7 +904,7 @@ function renderMarkers(shouldFitBounds = false) {
 
       const havenPopupHtml = `
         <div class="p-3.5 bg-white text-slate-900 max-w-[260px]">
-          <div class="flex items-center justify-between gap-2 mb-1.5">
+          <div class="flex items-center justify-between gap-2 pr-5 mb-2">
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-200">
               Pos Aman 24 Jam
             </span>
@@ -698,8 +912,8 @@ function renderMarkers(shouldFitBounds = false) {
               ${formatDistance(distMeters)}
             </span>
           </div>
-          <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${haven.name}</h4>
-          <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${haven.address}</p>
+          <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${escapeHtml(haven.name)}</h4>
+          <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${escapeHtml(haven.address)}</p>
           <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
             <button
               type="button"
@@ -722,19 +936,40 @@ function renderMarkers(shouldFitBounds = false) {
 
       marker.bindPopup(havenPopupHtml, {
         className: 'safezone-light-popup',
-        maxWidth: 280
+        maxWidth: 275,
+        autoPan: true,
+        autoPanPaddingTopLeft: [20, 20],
+        autoPanPaddingBottomRight: [20, 56]
+      })
+
+      marker.on('popupopen', () => {
+        openedPopupTarget.value = { kind: 'haven', id: haven.id }
       })
 
       havensLayerGroup.addLayer(marker)
     })
   }
 
-  if (shouldFitBounds && visiblePoints.length > 0 && !props.activeRouteHaven) {
+  if (activePopup) {
+    const targetMarker =
+      activePopup.kind === 'report'
+        ? reportMarkersMap.get(activePopup.id)
+        : havenMarkersMap.get(activePopup.id)
+    if (targetMarker) {
+      targetMarker.openPopup()
+    } else {
+      openedPopupTarget.value = null
+    }
+  }
+
+  isRebuildingMarkers = false
+
+  if (shouldFitBounds && visiblePoints.length > 0 && !props.activeRouteHaven && !activePopup) {
     if (visiblePoints.length === 1) {
       map.flyTo(visiblePoints[0], 15, { duration: 0.9 })
     } else {
       const bounds = L.latLngBounds(visiblePoints)
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
+      map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 })
     }
   }
 }
@@ -785,7 +1020,7 @@ async function renderRouteLine() {
   routeLayerGroup.addLayer(innerLine)
 
   const bounds = L.latLngBounds(routeData.coordinates)
-  map.fitBounds(bounds, { padding: [55, 55], maxZoom: 16 })
+  map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 })
 }
 
 function routeToNearestHaven() {
@@ -823,12 +1058,14 @@ function setPickerLocation(lat: number, lng: number) {
 function locateUser() {
   if (!navigator.geolocation) return
   isLocating.value = true
+  openedPopupTarget.value = null
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       isLocating.value = false
       const lat = pos.coords.latitude
       const lng = pos.coords.longitude
+      lastAutoScanCoords = { lat, lng }
       emit('updateUserCoords', { lat, lng }, true)
       if (map) {
         map.flyTo([lat, lng], 15, { duration: 1.0 })
@@ -843,18 +1080,20 @@ function locateUser() {
 
 function flyTo(lat: number, lng: number, zoom = 15) {
   if (!map) return
+  lastAutoScanCoords = { lat, lng }
   map.flyTo([lat, lng], zoom, { duration: 1.0 })
 }
 
 watch(
   [() => props.activeCategory, () => props.mapFocus],
   () => {
+    openedPopupTarget.value = null
     renderMarkers(true)
   }
 )
 
 watch(
-  [() => props.reports, () => props.safeHavens, () => props.upvotedIds, () => props.resolvedIds, searchQuery],
+  [() => props.reports, () => props.safeHavens, () => props.upvotedIds, () => props.resolvedIds],
   () => {
     renderMarkers(false)
   },
@@ -882,6 +1121,7 @@ watch(
 
 defineExpose({
   flyTo,
+  focusPin,
   locateUser,
   routeToNearestHaven,
   fitToVisibleMarkers: () => renderMarkers(true)
@@ -896,15 +1136,42 @@ defineExpose({
 .safezone-light-popup .leaflet-popup-content-wrapper {
   background: #ffffff !important;
   color: #0f172a !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 16px !important;
   padding: 0 !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.32) !important;
+}
+
+.safezone-light-popup .leaflet-popup-content {
+  margin: 0 !important;
 }
 
 .safezone-light-popup .leaflet-popup-tip {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.safezone-light-popup .leaflet-popup-close-button {
+  top: 10px !important;
+  right: 10px !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 8px !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  font-size: 15px !important;
+  line-height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 0 !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.safezone-light-popup .leaflet-popup-close-button:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 .sz-custom-pin {
@@ -1193,6 +1460,18 @@ defineExpose({
   }
   20%, 63% {
     opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sz-danger-pulse,
+  .sz-sonar-ring,
+  .sz-warning-halo,
+  .sz-haven-glow,
+  .sz-body-haven,
+  .sz-tip-haven,
+  .sz-flicker-icon {
+    animation: none !important;
   }
 }
 </style>
