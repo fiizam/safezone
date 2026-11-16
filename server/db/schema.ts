@@ -13,6 +13,8 @@ export const reports = pgTable('reports', {
   dangerLevel: text('danger_level').notNull(),
   latitude: doublePrecision('latitude').notNull(),
   longitude: doublePrecision('longitude').notNull(),
+  vulnerableHours: text('vulnerable_hours'),
+  photoUrl: text('photo_url'),
   upvotes: integer('upvotes').default(1).notNull(),
   resolvedCount: integer('resolved_count').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull()
@@ -27,7 +29,11 @@ export const safeHavens = pgTable('safe_havens', {
   longitude: doublePrecision('longitude').notNull()
 })
 
-export type Report = InferSelectModel<typeof reports>
+type BaseReport = InferSelectModel<typeof reports>
+export type Report = Omit<BaseReport, 'vulnerableHours' | 'photoUrl'> & {
+  vulnerableHours?: string | null
+  photoUrl?: string | null
+}
 export type NewReport = InferInsertModel<typeof reports>
 
 export type SafeHaven = InferSelectModel<typeof safeHavens>

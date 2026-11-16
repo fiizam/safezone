@@ -12,9 +12,9 @@
     ></div>
 
     <div
-      class="relative w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-float p-5 sm:p-7 text-slate-900 z-10 my-8 overflow-hidden"
+      class="relative w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-float p-5 sm:p-7 text-slate-900 z-10 my-8 max-h-[90vh] overflow-y-auto"
     >
-      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
             <svg aria-hidden="true" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -25,7 +25,7 @@
           </div>
           <div>
             <h2 id="report-modal-title" class="text-base font-bold text-slate-900 tracking-tight">Laporkan Titik Rawan</h2>
-            <p class="text-xs text-slate-600">Bagikan kondisi jalan agar warga lain bisa mengantisipasi</p>
+            <p class="text-xs text-slate-600">Bagikan kondisi jalan, jam rawan, dan bukti foto agar warga terhindar</p>
           </div>
         </div>
 
@@ -77,7 +77,7 @@
           <div class="grid grid-cols-2 gap-2">
             <button
               type="button"
-              @click="form.category = 'begal'"
+              @click="selectCategory('begal')"
               :aria-pressed="form.category === 'begal'"
               :class="[
                 'p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-colors text-xs',
@@ -95,7 +95,7 @@
 
             <button
               type="button"
-              @click="form.category = 'geng_motor'"
+              @click="selectCategory('geng_motor')"
               :aria-pressed="form.category === 'geng_motor'"
               :class="[
                 'p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-colors text-xs',
@@ -113,7 +113,7 @@
 
             <button
               type="button"
-              @click="form.category = 'gelap'"
+              @click="selectCategory('gelap')"
               :aria-pressed="form.category === 'gelap'"
               :class="[
                 'p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-colors text-xs',
@@ -131,7 +131,7 @@
 
             <button
               type="button"
-              @click="form.category = 'sepi'"
+              @click="selectCategory('sepi')"
               :aria-pressed="form.category === 'sepi'"
               :class="[
                 'p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-colors text-xs',
@@ -159,7 +159,7 @@
               @click="form.dangerLevel = 'high'"
               :aria-pressed="form.dangerLevel === 'high'"
               :class="[
-                'min-h-[40px] py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-colors',
+                'min-h-[38px] py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-colors',
                 form.dangerLevel === 'high'
                   ? 'bg-rose-50 border-rose-300 text-rose-800'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -172,7 +172,7 @@
               @click="form.dangerLevel = 'medium'"
               :aria-pressed="form.dangerLevel === 'medium'"
               :class="[
-                'min-h-[40px] py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-colors',
+                'min-h-[38px] py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-colors',
                 form.dangerLevel === 'medium'
                   ? 'bg-amber-50 border-amber-300 text-amber-800'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -185,7 +185,7 @@
               @click="form.dangerLevel = 'low'"
               :aria-pressed="form.dangerLevel === 'low'"
               :class="[
-                'min-h-[40px] py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-colors',
+                'min-h-[38px] py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-colors',
                 form.dangerLevel === 'low'
                   ? 'bg-slate-200 border-slate-300 text-slate-900'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -197,6 +197,35 @@
         </fieldset>
 
         <div>
+          <label for="report-hours-input" class="block text-xs font-semibold text-slate-800 mb-1.5">
+            Rentang Jam Rawan
+          </label>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <button
+              v-for="preset in hourPresets"
+              :key="preset"
+              type="button"
+              @click="form.vulnerableHours = preset"
+              :class="[
+                'px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors',
+                form.vulnerableHours === preset
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+              ]"
+            >
+              {{ preset }}
+            </button>
+          </div>
+          <input
+            id="report-hours-input"
+            v-model="form.vulnerableHours"
+            type="text"
+            placeholder="Contoh: 23:00 - 04:00 WIB"
+            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 text-xs text-slate-900 placeholder-slate-500 transition-colors"
+          />
+        </div>
+
+        <div>
           <label for="report-desc-input" class="block text-xs font-semibold text-slate-800 mb-1.5">
             Keterangan &amp; Kronologi Singkat <span class="text-rose-600">*</span>
           </label>
@@ -205,9 +234,64 @@
             v-model="form.description"
             required
             rows="3"
-            placeholder="Jelaskan kondisi jalan, perkiraan jam rawan, atau patokan lokasi..."
+            placeholder="Jelaskan kondisi jalan, jumlah pelaku/kondisi lampu, atau patokan lokasi..."
             class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 text-xs text-slate-900 placeholder-slate-500 transition-colors resize-none"
           ></textarea>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="report-photo-input" class="block text-xs font-semibold text-slate-800">
+              Foto Bukti Kondisi Jalan (Opsional)
+            </label>
+            <span v-if="compressedSizeLabel" class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+              Terkompresi {{ compressedSizeLabel }}
+            </span>
+          </div>
+
+          <div
+            v-if="!form.photoUrl"
+            class="relative rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/70 transition-colors p-3.5 text-center"
+          >
+            <input
+              id="report-photo-input"
+              type="file"
+              accept="image/*"
+              @change="handlePhotoSelected"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div class="flex items-center justify-center gap-2 text-xs font-semibold text-slate-700">
+              <svg aria-hidden="true" class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span>{{ isCompressingPhoto ? 'Mengompresi foto...' : 'Unggah / Ambil Foto Kondisi Jalan (Otomatis Dikompres)' }}</span>
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="relative rounded-xl border border-slate-200 bg-slate-50 p-2 flex items-center justify-between gap-3"
+          >
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img
+                :src="form.photoUrl"
+                alt="Preview bukti kondisi jalan"
+                class="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0"
+              />
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-slate-900 truncate">Foto bukti siap dilampirkan</div>
+                <div class="text-[11px] text-slate-500">Resolusi dioptimalkan otomatis agar hemat kuota</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="removePhoto"
+              class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold shrink-0"
+            >
+              Hapus
+            </button>
+          </div>
         </div>
 
         <div class="space-y-2 pt-1">
@@ -280,7 +364,7 @@
           </button>
           <button
             type="submit"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || isCompressingPhoto"
             class="min-h-[42px] px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-subtle flex items-center gap-2 transition-colors disabled:opacity-50"
           >
             <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -306,8 +390,17 @@ const emit = defineEmits<{
   (e: 'pickFromMap'): void
 }>()
 
+const hourPresets = [
+  '23:00 - 04:00 WIB',
+  '21:00 - 01:00 WIB',
+  '00:00 - 05:00 WIB',
+  '18:30 - 05:30 WIB'
+]
+
 const isSubmitting = ref(false)
 const isGettingGps = ref(false)
+const isCompressingPhoto = ref(false)
+const compressedSizeLabel = ref('')
 const errorMessage = ref('')
 
 const form = reactive({
@@ -315,9 +408,28 @@ const form = reactive({
   description: '',
   category: 'begal',
   dangerLevel: 'high',
+  vulnerableHours: '23:00 - 04:00 WIB',
+  photoUrl: '' as string,
   latitude: -6.8925,
   longitude: 107.6186
 })
+
+function selectCategory(cat: string) {
+  form.category = cat
+  if (cat === 'begal') {
+    form.dangerLevel = 'high'
+    form.vulnerableHours = '23:00 - 04:00 WIB'
+  } else if (cat === 'geng_motor') {
+    form.dangerLevel = 'high'
+    form.vulnerableHours = '00:00 - 05:00 WIB'
+  } else if (cat === 'gelap') {
+    form.dangerLevel = 'medium'
+    form.vulnerableHours = '18:30 - 05:30 WIB'
+  } else {
+    form.dangerLevel = 'medium'
+    form.vulnerableHours = '21:00 - 01:00 WIB'
+  }
+}
 
 watch(
   () => props.initialCoords,
@@ -343,6 +455,74 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
+
+function removePhoto() {
+  form.photoUrl = ''
+  compressedSizeLabel.value = ''
+}
+
+function handlePhotoSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input?.files?.[0]
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    errorMessage.value = 'File harus berupa gambar (JPG/PNG/WebP).'
+    return
+  }
+
+  isCompressingPhoto.value = true
+  errorMessage.value = ''
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    const img = new Image()
+    img.onload = () => {
+      const maxDim = 680
+      let w = img.width
+      let h = img.height
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w)
+          w = maxDim
+        } else {
+          w = Math.round((w * maxDim) / h)
+          h = maxDim
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        isCompressingPhoto.value = false
+        return
+      }
+      ctx.drawImage(img, 0, 0, w, h)
+
+      let dataUrl = canvas.toDataURL('image/webp', 0.72)
+      if (!dataUrl.startsWith('data:image/webp')) {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.72)
+      }
+
+      form.photoUrl = dataUrl
+      const approxKb = Math.max(1, Math.round((dataUrl.length * 0.75) / 1024))
+      compressedSizeLabel.value = `${approxKb} KB`
+      isCompressingPhoto.value = false
+    }
+    img.onerror = () => {
+      isCompressingPhoto.value = false
+      errorMessage.value = 'Gagal memproses gambar yang dipilih.'
+    }
+    img.src = String(reader.result)
+  }
+  reader.onerror = () => {
+    isCompressingPhoto.value = false
+    errorMessage.value = 'Gagal membaca file gambar.'
+  }
+  reader.readAsDataURL(file)
+}
 
 function onClose() {
   errorMessage.value = ''
@@ -387,6 +567,8 @@ async function handleSubmit() {
         description: form.description,
         category: form.category,
         dangerLevel: form.dangerLevel,
+        vulnerableHours: form.vulnerableHours,
+        photoUrl: form.photoUrl || null,
         latitude: form.latitude,
         longitude: form.longitude
       }
@@ -396,6 +578,8 @@ async function handleSubmit() {
       emit('created', res.data)
       form.title = ''
       form.description = ''
+      form.photoUrl = ''
+      compressedSizeLabel.value = ''
       onClose()
     }
   } catch (err: any) {

@@ -11,7 +11,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { title, description, category, dangerLevel, latitude, longitude } = body
+  const {
+    title,
+    description,
+    category,
+    dangerLevel,
+    latitude,
+    longitude,
+    vulnerableHours,
+    photoUrl
+  } = body
 
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     throw createError({
@@ -60,6 +69,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const cleanHours =
+    typeof vulnerableHours === 'string' && vulnerableHours.trim().length > 0
+      ? vulnerableHours.trim().slice(0, 64)
+      : null
+
+  const cleanPhotoUrl =
+    typeof photoUrl === 'string' &&
+    (photoUrl.startsWith('data:image/') || photoUrl.startsWith('https://')) &&
+    photoUrl.length <= 450000
+      ? photoUrl
+      : null
+
   try {
     let createdReport: schema.Report
     const db = getDb()
@@ -73,6 +94,8 @@ export default defineEventHandler(async (event) => {
           dangerLevel,
           latitude: latNum,
           longitude: lngNum,
+          vulnerableHours: cleanHours,
+          photoUrl: cleanPhotoUrl,
           upvotes: 1,
           resolvedCount: 0,
           createdAt: new Date()
@@ -87,7 +110,9 @@ export default defineEventHandler(async (event) => {
           category,
           dangerLevel,
           latitude: latNum,
-          longitude: lngNum
+          longitude: lngNum,
+          vulnerableHours: cleanHours,
+          photoUrl: cleanPhotoUrl
         })
       }
     } else {
@@ -97,7 +122,9 @@ export default defineEventHandler(async (event) => {
         category,
         dangerLevel,
         latitude: latNum,
-        longitude: lngNum
+        longitude: lngNum,
+        vulnerableHours: cleanHours,
+        photoUrl: cleanPhotoUrl
       })
     }
 

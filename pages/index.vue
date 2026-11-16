@@ -618,6 +618,52 @@ function handleFocusReport(report: Report) {
   }
 }
 
+async function promoteLocalRadarReport(localRep: Report, action: 'upvote' | 'resolve') {
+  try {
+    const res = await $fetch<{
+      success: boolean
+      promoted: boolean
+      merged: boolean
+      data: Report
+    }>('/api/reports/promote', {
+      method: 'POST',
+      body: {
+        title: localRep.title,
+        description: localRep.description,
+        category: localRep.category,
+        dangerLevel: localRep.dangerLevel,
+        vulnerableHours: localRep.vulnerableHours,
+        latitude: localRep.latitude,
+        longitude: localRep.longitude,
+        upvotes: localRep.upvotes,
+        resolvedCount: localRep.resolvedCount || 0,
+        action
+      }
+    })
+
+    if (res?.success && res.data) {
+      const perm = res.data
+      discoveredReports.value = discoveredReports.value.filter(r => r.id !== localRep.id)
+      const existingIdx = reports.value.findIndex(r => r.id === perm.id)
+      if (existingIdx >= 0) {
+        reports.value[existingIdx] = perm
+      } else {
+        reports.value.unshift(perm)
+      }
+
+      if (action === 'upvote' && !upvotedIds.value.includes(perm.id)) {
+        upvotedIds.value = [...upvotedIds.value, perm.id]
+      }
+      if (action === 'resolve' && !resolvedIds.value.includes(perm.id)) {
+        resolvedIds.value = [...resolvedIds.value, perm.id]
+      }
+      saveStoredVotes()
+    }
+  } catch (err) {
+    console.error('Gagal menyinkronkan laporan radar ke database:', err)
+  }
+}
+
 async function handleUpvote(reportId: number) {
   if (upvotedIds.value.includes(reportId)) {
     showToast('Anda sudah memberikan validasi pada titik laporan ini.', 'info')
@@ -636,7 +682,7 @@ async function handleUpvote(reportId: number) {
     targetLocal.upvotes += 1
   }
 
-  showToast('Validasi Anda tercatat untuk titik rawan ini.', 'success')
+  showToast('Validasi Anda tercatat dan disinkronkan ke database SafeZone.', 'success')
 
   if (reportId < 500000) {
     try {
@@ -646,6 +692,8 @@ async function handleUpvote(reportId: number) {
     } catch (error) {
       console.error('Gagal upvote:', error)
     }
+  } else if (targetLocal) {
+    await promoteLocalRadarReport(targetLocal, 'upvote')
   }
 }
 
@@ -667,7 +715,7 @@ async function handleResolve(reportId: number) {
     targetLocal.resolvedCount = (targetLocal.resolvedCount || 0) + 1
   }
 
-  showToast('Terima kasih! Konfirmasi kondisi aman/kondusif telah dicatat.', 'success')
+  showToast('Terima kasih! Konfirmasi kondisi kondusif telah disinkronkan ke database.', 'success')
 
   if (reportId < 500000) {
     try {
@@ -677,6 +725,8 @@ async function handleResolve(reportId: number) {
     } catch (error) {
       console.error('Gagal resolve:', error)
     }
+  } else if (targetLocal) {
+    await promoteLocalRadarReport(targetLocal, 'resolve')
   }
 }
 

@@ -4,6 +4,13 @@ import { drizzle } from 'drizzle-orm/neon-http'
 import * as schema from './schema'
 import { initialReports, initialSafeHavens } from './mock-data'
 
+function defaultHoursForCategory(category: string): string {
+  if (category === 'begal') return '23:00 - 04:00 WIB'
+  if (category === 'geng_motor') return '00:00 - 04:30 WIB'
+  if (category === 'gelap') return '18:30 - 05:30 WIB'
+  return '22:00 - 04:00 WIB'
+}
+
 async function runSeed() {
   const databaseUrl = process.env.DATABASE_URL
 
@@ -18,6 +25,8 @@ async function runSeed() {
 
   try {
     await sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS resolved_count INTEGER NOT NULL DEFAULT 0')
+    await sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS vulnerable_hours TEXT')
+    await sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS photo_url TEXT')
     await sql('TRUNCATE TABLE reports, safe_havens RESTART IDENTITY CASCADE')
 
     for (const haven of initialSafeHavens) {
@@ -39,6 +48,8 @@ async function runSeed() {
         dangerLevel: report.dangerLevel,
         latitude: report.latitude,
         longitude: report.longitude,
+        vulnerableHours: report.vulnerableHours || defaultHoursForCategory(report.category),
+        photoUrl: report.photoUrl || null,
         upvotes: report.upvotes,
         resolvedCount: report.resolvedCount || 0,
         createdAt: report.createdAt

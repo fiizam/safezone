@@ -5,6 +5,7 @@ import { initialReports, initialSafeHavens } from './mock-data'
 
 let _db: ReturnType<typeof drizzle> | null = null
 let _initializedUrl = ''
+let _schemaChecked = false
 
 export function getDb() {
   let rawDatabaseUrl = process.env.DATABASE_URL || ''
@@ -36,6 +37,14 @@ export function getDb() {
 
   try {
     const sql = neon(rawDatabaseUrl)
+    if (!_schemaChecked) {
+      _schemaChecked = true
+      Promise.all([
+        sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS resolved_count INTEGER NOT NULL DEFAULT 0'),
+        sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS vulnerable_hours TEXT'),
+        sql('ALTER TABLE reports ADD COLUMN IF NOT EXISTS photo_url TEXT')
+      ]).catch(() => {})
+    }
     _db = drizzle(sql, { schema })
     _initializedUrl = rawDatabaseUrl
     return _db
@@ -47,7 +56,19 @@ export function getDb() {
 
 export const db = getDb()
 
-let inMemoryReports = [...initialReports]
+let inMemoryReports: schema.Report[] = initialReports.map(r => ({
+  ...r,
+  vulnerableHours:
+    r.vulnerableHours ||
+    (r.category === 'begal'
+      ? '23:00 - 04:00 WIB'
+      : r.category === 'geng_motor'
+        ? '00:00 - 04:30 WIB'
+        : r.category === 'gelap'
+          ? '18:30 - 05:30 WIB'
+          : '22:00 - 04:00 WIB'),
+  photoUrl: r.photoUrl || null
+}))
 let inMemoryHavens = [...initialSafeHavens]
 
 export const memoryStore = {
@@ -55,6 +76,8 @@ export const memoryStore = {
   addReport: (newReport: Omit<schema.Report, 'id' | 'createdAt' | 'upvotes' | 'resolvedCount'>) => {
     const created: schema.Report = {
       ...newReport,
+      vulnerableHours: newReport.vulnerableHours || null,
+      photoUrl: newReport.photoUrl || null,
       id: inMemoryReports.length ? Math.max(...inMemoryReports.map(r => r.id)) + 1 : 1,
       upvotes: 1,
       resolvedCount: 0,

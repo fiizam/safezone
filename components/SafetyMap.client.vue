@@ -161,6 +161,26 @@
 
         <button
           type="button"
+          @click="toggleRoutePlanner"
+          aria-label="Cek keamanan rute pulang dari Titik A ke Titik B"
+          title="Cek keamanan rute pulang dari Titik A ke Titik B"
+          :class="[
+            'min-h-[36px] px-3.5 py-1.5 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-colors',
+            isPlannerOpen || commuteRoutes.length > 0
+              ? 'bg-slate-900 text-white border-slate-900'
+              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-200'
+          ]"
+        >
+          <svg aria-hidden="true" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="6" cy="19" r="3"/>
+            <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
+            <circle cx="18" cy="5" r="3"/>
+          </svg>
+          <span>Cek Rute Pulang (A → B)</span>
+        </button>
+
+        <button
+          type="button"
           @click="routeToNearestHaven"
           aria-label="Tampilkan rute ke Pos Aman terdekat"
           title="Rute ke Pos Aman terdekat"
@@ -169,6 +189,221 @@
           <span class="w-2 h-2 rounded-full bg-white shrink-0"></span>
           <span>Rute Pos Terdekat</span>
         </button>
+      </div>
+    </div>
+
+    <div
+      v-if="isPlannerOpen || commuteRoutes.length > 0"
+      class="px-3.5 sm:px-4 py-3 bg-slate-50 border-b border-slate-200/90 flex flex-col gap-3 relative z-[440]"
+      role="region"
+      aria-label="Perencana Keamanan Rute Pulang Titik A ke Titik B"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-start">
+        <div class="md:col-span-4 relative">
+          <label for="route-origin-input" class="block text-[11px] font-bold text-slate-700 mb-1">
+            Titik Berangkat (A)
+          </label>
+          <div class="flex items-center gap-1.5">
+            <div class="relative flex-1">
+              <input
+                id="route-origin-input"
+                v-model="originQuery"
+                type="text"
+                @focus="isOriginDropdownOpen = true"
+                placeholder="Lokasi Saya (Ketik jika ingin ubah)..."
+                class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-slate-900 text-xs text-slate-900 placeholder-slate-500 font-medium"
+              />
+              <div
+                v-if="isOriginDropdownOpen && originRemotePlaces.length > 0"
+                class="absolute left-0 right-0 top-10 z-[920] bg-white rounded-xl border border-slate-200 shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100"
+              >
+                <button
+                  v-for="place in originRemotePlaces"
+                  :key="`orig-${place.id}`"
+                  type="button"
+                  @click="selectOriginPlace(place)"
+                  class="w-full px-3 py-2 text-left hover:bg-emerald-50 text-xs"
+                >
+                  <div class="font-bold text-slate-900 truncate">{{ place.name }}</div>
+                  <div class="text-[10px] text-slate-500 truncate">{{ place.displayName }}</div>
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="useMyLocationAsOrigin"
+              title="Gunakan titik posisi saya saat ini"
+              class="min-h-[34px] px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-bold text-slate-700 shrink-0"
+            >
+              GPS Saya
+            </button>
+          </div>
+        </div>
+
+        <div class="md:col-span-5 relative">
+          <label for="route-dest-input" class="block text-[11px] font-bold text-slate-700 mb-1">
+            Titik Tujuan Pulang (B)
+          </label>
+          <div class="flex items-center gap-1.5">
+            <div class="relative flex-1">
+              <input
+                id="route-dest-input"
+                v-model="destQuery"
+                type="text"
+                @focus="isDestDropdownOpen = true"
+                @keydown.enter.prevent="runCommuteSafetyCheck"
+                placeholder="Ketik alamat tujuan, desa, kampus, atau jalan..."
+                class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-slate-900 text-xs text-slate-900 placeholder-slate-500 font-medium"
+              />
+              <div
+                v-if="isDestDropdownOpen && destRemotePlaces.length > 0"
+                class="absolute left-0 right-0 top-10 z-[920] bg-white rounded-xl border border-slate-200 shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100"
+              >
+                <button
+                  v-for="place in destRemotePlaces"
+                  :key="`dest-${place.id}`"
+                  type="button"
+                  @click="selectDestPlace(place)"
+                  class="w-full px-3 py-2 text-left hover:bg-emerald-50 text-xs"
+                >
+                  <div class="font-bold text-slate-900 truncate">{{ place.name }}</div>
+                  <div class="text-[10px] text-slate-500 truncate">{{ place.displayName }}</div>
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="startPickDestinationOnMap"
+              :class="[
+                'min-h-[34px] px-2.5 py-1.5 rounded-xl border text-[11px] font-bold shrink-0 transition-colors',
+                isPickingDestination
+                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+              ]"
+            >
+              {{ isPickingDestination ? 'Klik Peta...' : 'Pilih di Peta' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="md:col-span-3 flex items-end gap-1.5 pt-0 md:pt-5">
+          <button
+            type="button"
+            @click="runCommuteSafetyCheck"
+            :disabled="isPlanningCommute"
+            class="flex-1 min-h-[36px] px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-60"
+          >
+            <span v-if="isPlanningCommute" class="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ isPlanningCommute ? 'Menganalisis...' : 'Analisis Rute' }}</span>
+          </button>
+          <button
+            type="button"
+            @click="closeCommutePlanner"
+            aria-label="Tutup panel cek rute pulang"
+            class="min-h-[36px] px-2.5 py-2 rounded-xl bg-white hover:bg-slate-200/70 text-slate-700 border border-slate-200 text-xs font-bold"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      <p v-if="plannerError" class="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2">
+        {{ plannerError }}
+      </p>
+
+      <div v-if="commuteRoutes.length > 0 && selectedCommuteRoute" class="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-subtle flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button
+              v-for="(opt, idx) in commuteRoutes"
+              :key="opt.id"
+              type="button"
+              @click="selectCommuteRouteIndex(idx)"
+              :class="[
+                'px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5',
+                selectedCommuteIdx === idx
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+              ]"
+            >
+              <span>{{ opt.label }}</span>
+              <span
+                :class="[
+                  'text-[10px] px-1.5 py-0.5 rounded-md font-extrabold',
+                  opt.safetyLevel === 'safe'
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : opt.safetyLevel === 'moderate'
+                      ? 'bg-amber-500/20 text-amber-300'
+                      : 'bg-rose-500/20 text-rose-300'
+                ]"
+                v-if="selectedCommuteIdx === idx"
+              >
+                {{ opt.safetyScore }}%
+              </span>
+              <span v-else class="text-[10px] text-slate-500">({{ opt.safetyScore }}%)</span>
+              <span
+                v-if="opt.isRecommended"
+                class="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded-md"
+              >
+                Rekomendasi Aman
+              </span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <a
+              :href="commuteGoogleMapsUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+            >
+              Buka Google Maps
+            </a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+          <div
+            :class="[
+              'p-2.5 rounded-xl border flex flex-col justify-between',
+              selectedCommuteRoute.safetyLevel === 'safe'
+                ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                : selectedCommuteRoute.safetyLevel === 'moderate'
+                  ? 'bg-amber-50/80 border-amber-200 text-amber-950'
+                  : 'bg-rose-50/80 border-rose-200 text-rose-950'
+            ]"
+          >
+            <span class="text-[10px] font-bold uppercase tracking-wider opacity-75">Skor Keamanan Rute</span>
+            <div class="text-base font-extrabold mt-0.5">
+              {{ selectedCommuteRoute.safetyScore }}% · {{ selectedCommuteRoute.safetyLabel }}
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Jarak &amp; Waktu Tempuh</span>
+            <div class="text-xs font-bold text-slate-900 mt-1">
+              {{ selectedCommuteRoute.distanceLabel }} · ~{{ selectedCommuteRoute.motorMinutes }} mnt motor
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Titik Rawan Terlewati</span>
+            <div class="text-xs font-bold text-slate-900 mt-1">
+              {{ selectedCommuteRoute.highDangerCount }} Bahaya Tinggi · {{ selectedCommuteRoute.warningCount }} Gelap/Sepi
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pos Aman 24 Jam di Jalur</span>
+            <div class="text-xs font-bold text-emerald-800 mt-1">
+              {{ selectedCommuteRoute.passedHavens.length }} Pos Siaga Terlewati
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-700 font-medium">
+          <strong class="text-slate-900">Analisis Jalur:</strong> {{ selectedCommuteRoute.advisorySummary }}
+        </p>
       </div>
     </div>
 
@@ -243,12 +478,18 @@
       </div>
 
       <div
-        v-if="isPickingLocation"
+        v-if="isPickingLocation || isPickingDestination"
         class="absolute top-3.5 left-1/2 -translate-x-1/2 z-[400] bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold border border-slate-700"
         role="status"
       >
         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span>Klik pada peta untuk memilih titik koordinat laporan</span>
+        <span>
+          {{
+            isPickingDestination
+              ? 'Klik pada peta untuk memilih Titik Tujuan Pulang (B)'
+              : 'Klik pada peta untuk memilih titik koordinat laporan'
+          }}
+        </span>
       </div>
     </div>
   </div>
@@ -264,9 +505,11 @@ import {
   estimateMotorMinutes,
   estimateWalkMinutes,
   fetchOsrmStreetRoute,
+  planSafeCommuteRoutes,
   searchIndonesianPlaces,
   type Coordinates,
-  type GeocodedPlace
+  type GeocodedPlace,
+  type AnalyzedRouteOption
 } from '~/utils/geo'
 
 interface SearchItem {
@@ -342,6 +585,226 @@ const osrmRouteStats = ref<{
   durationSeconds: number
   isRoadRoute: boolean
 } | null>(null)
+
+const isPlannerOpen = ref(false)
+const isPickingDestination = ref(false)
+const isPlanningCommute = ref(false)
+const plannerError = ref('')
+const originQuery = ref('Lokasi Saya Saat Ini')
+const destQuery = ref('')
+const originCoords = ref<Coordinates>({ ...props.userCoords })
+const destCoords = ref<Coordinates | null>(null)
+const originRemotePlaces = ref<GeocodedPlace[]>([])
+const destRemotePlaces = ref<GeocodedPlace[]>([])
+const isOriginDropdownOpen = ref(false)
+const isDestDropdownOpen = ref(false)
+const commuteRoutes = ref<AnalyzedRouteOption[]>([])
+const selectedCommuteIdx = ref(0)
+let originDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let destDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let destMarker: any = null
+
+const selectedCommuteRoute = computed<AnalyzedRouteOption | null>(() => {
+  return commuteRoutes.value[selectedCommuteIdx.value] || commuteRoutes.value[0] || null
+})
+
+const commuteGoogleMapsUrl = computed(() => {
+  const dest = destCoords.value
+  if (!dest) return 'https://www.google.com/maps'
+  return `https://www.google.com/maps/dir/?api=1&origin=${originCoords.value.lat},${originCoords.value.lng}&destination=${dest.lat},${dest.lng}&travelmode=two-wheeler`
+})
+
+watch(originQuery, (val) => {
+  if (originDebounceTimer) clearTimeout(originDebounceTimer)
+  const q = val.trim()
+  if (q.length < 3 || q === 'Lokasi Saya Saat Ini') {
+    originRemotePlaces.value = []
+    return
+  }
+  originDebounceTimer = setTimeout(async () => {
+    originRemotePlaces.value = await searchIndonesianPlaces(q)
+  }, 300)
+})
+
+watch(destQuery, (val) => {
+  if (destDebounceTimer) clearTimeout(destDebounceTimer)
+  const q = val.trim()
+  if (q.length < 3 || q.startsWith('Titik Peta (')) {
+    destRemotePlaces.value = []
+    return
+  }
+  destDebounceTimer = setTimeout(async () => {
+    destRemotePlaces.value = await searchIndonesianPlaces(q)
+  }, 300)
+})
+
+function toggleRoutePlanner() {
+  isPlannerOpen.value = !isPlannerOpen.value
+  if (isPlannerOpen.value) {
+    originCoords.value = { ...props.userCoords }
+    if (!originQuery.value) {
+      originQuery.value = 'Lokasi Saya Saat Ini'
+    }
+  } else {
+    isPickingDestination.value = false
+  }
+}
+
+function closeCommutePlanner() {
+  isPlannerOpen.value = false
+  isPickingDestination.value = false
+  plannerError.value = ''
+  commuteRoutes.value = []
+  selectedCommuteIdx.value = 0
+  if (destMarker && map) {
+    map.removeLayer(destMarker)
+    destMarker = null
+  }
+  renderRouteLine()
+}
+
+function useMyLocationAsOrigin() {
+  originCoords.value = { ...props.userCoords }
+  originQuery.value = 'Lokasi Saya Saat Ini'
+  isOriginDropdownOpen.value = false
+}
+
+function selectOriginPlace(place: GeocodedPlace) {
+  originCoords.value = { lat: place.lat, lng: place.lng }
+  originQuery.value = place.name
+  originRemotePlaces.value = []
+  isOriginDropdownOpen.value = false
+}
+
+function selectDestPlace(place: GeocodedPlace) {
+  destCoords.value = { lat: place.lat, lng: place.lng }
+  destQuery.value = place.name
+  destRemotePlaces.value = []
+  isDestDropdownOpen.value = false
+  plannerError.value = ''
+  runCommuteSafetyCheck()
+}
+
+function startPickDestinationOnMap() {
+  isPickingDestination.value = !isPickingDestination.value
+  plannerError.value = ''
+}
+
+function selectCommuteRouteIndex(idx: number) {
+  selectedCommuteIdx.value = idx
+  renderCommuteRoutesOnMap()
+}
+
+async function runCommuteSafetyCheck() {
+  plannerError.value = ''
+  isOriginDropdownOpen.value = false
+  isDestDropdownOpen.value = false
+
+  if (!destCoords.value) {
+    const q = destQuery.value.trim()
+    if (q.length >= 3) {
+      isPlanningCommute.value = true
+      const found = await searchIndonesianPlaces(q)
+      if (found.length > 0) {
+        destCoords.value = { lat: found[0].lat, lng: found[0].lng }
+        destQuery.value = found[0].name
+      } else {
+        isPlanningCommute.value = false
+        plannerError.value = 'Alamat tujuan tidak ditemukan. Coba ketik nama jalan/kecamatan atau klik tombol Pilih di Peta.'
+        return
+      }
+    } else {
+      plannerError.value = 'Ketik alamat tujuan pulang (B) atau klik tombol Pilih di Peta terlebih dahulu.'
+      return
+    }
+  }
+
+  if (originQuery.value.trim() === 'Lokasi Saya Saat Ini') {
+    originCoords.value = { ...props.userCoords }
+  }
+
+  emit('clearRoute')
+  isPlanningCommute.value = true
+
+  try {
+    const analyzed = await planSafeCommuteRoutes(
+      originCoords.value,
+      destCoords.value,
+      props.reports,
+      props.safeHavens
+    )
+    commuteRoutes.value = analyzed
+    const recIdx = analyzed.findIndex(r => r.isRecommended)
+    selectedCommuteIdx.value = recIdx >= 0 ? recIdx : 0
+    renderCommuteRoutesOnMap()
+  } catch {
+    plannerError.value = 'Gagal menghitung rute perjalanan. Silakan coba lagi.'
+  } finally {
+    isPlanningCommute.value = false
+  }
+}
+
+function renderCommuteRoutesOnMap() {
+  if (!map || !L || !routeLayerGroup) return
+  routeLayerGroup.clearLayers()
+
+  if (!commuteRoutes.value.length) return
+
+  commuteRoutes.value.forEach((opt, idx) => {
+    if (idx === selectedCommuteIdx.value) return
+    const altLine = L.polyline(opt.coordinates, {
+      color: '#94a3b8',
+      weight: 4,
+      opacity: 0.65,
+      dashArray: '6, 8',
+      lineCap: 'round'
+    })
+    routeLayerGroup.addLayer(altLine)
+  })
+
+  const activeOpt = selectedCommuteRoute.value
+  if (activeOpt) {
+    const mainColor =
+      activeOpt.safetyLevel === 'safe'
+        ? '#10b981'
+        : activeOpt.safetyLevel === 'moderate'
+          ? '#f59e0b'
+          : '#f43f5e'
+
+    const glowLine = L.polyline(activeOpt.coordinates, {
+      color: mainColor,
+      weight: 10,
+      opacity: 0.28,
+      lineCap: 'round',
+      lineJoin: 'round'
+    })
+    const coreLine = L.polyline(activeOpt.coordinates, {
+      color: mainColor,
+      weight: 4.5,
+      opacity: 0.96,
+      lineCap: 'round',
+      lineJoin: 'round'
+    })
+    routeLayerGroup.addLayer(glowLine)
+    routeLayerGroup.addLayer(coreLine)
+
+    if (destCoords.value) {
+      if (destMarker) {
+        map.removeLayer(destMarker)
+      }
+      const destIcon = L.divIcon({
+        className: 'sz-custom-pin',
+        html: `<div class="px-2.5 py-1 rounded-full bg-slate-900 text-white border-2 border-emerald-400 text-[10px] font-extrabold shadow-lg whitespace-nowrap">Tujuan (B)</div>`,
+        iconSize: [76, 26],
+        iconAnchor: [38, 13]
+      })
+      destMarker = L.marker([destCoords.value.lat, destCoords.value.lng], { icon: destIcon }).addTo(map)
+    }
+
+    const bounds = L.latLngBounds(activeOpt.coordinates)
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
+  }
+}
 
 function categoryName(cat: string): string {
   const names: Record<string, string> = {
@@ -563,8 +1026,17 @@ function initMap() {
 
   map.on('click', (e: any) => {
     isSearchDropdownOpen.value = false
+    isOriginDropdownOpen.value = false
+    isDestDropdownOpen.value = false
     openedPopupTarget.value = null
     const { lat, lng } = e.latlng
+    if (isPickingDestination.value) {
+      isPickingDestination.value = false
+      destCoords.value = { lat, lng }
+      destQuery.value = `Titik Peta (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      runCommuteSafetyCheck()
+      return
+    }
     if (props.isPickingLocation) {
       setPickerLocation(lat, lng)
       emit('selectLocation', { lat, lng })
@@ -836,6 +1308,22 @@ function renderMarkers(shouldFitBounds = false) {
         ? 'bg-emerald-600 text-white border-emerald-600'
         : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
 
+      const hoursText =
+        report.vulnerableHours ||
+        (report.category === 'begal'
+          ? '23:00 - 04:00 WIB'
+          : report.category === 'geng_motor'
+            ? '00:00 - 04:30 WIB'
+            : report.category === 'gelap'
+              ? '18:30 - 05:30 WIB'
+              : '22:00 - 04:00 WIB')
+
+      const photoBlock = report.photoUrl
+        ? `<div class="mb-2 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+             <img src="${escapeHtml(report.photoUrl)}" alt="Bukti laporan" class="w-full h-28 object-cover" />
+           </div>`
+        : ''
+
       const popupHtml = `
         <div class="p-3.5 bg-white text-slate-900 max-w-[265px]">
           <div class="flex items-center justify-between gap-2 pr-5 mb-2">
@@ -847,6 +1335,12 @@ function renderMarkers(shouldFitBounds = false) {
             </span>
           </div>
           <h4 class="font-bold text-xs text-slate-900 mb-1 leading-snug">${escapeHtml(report.title)}</h4>
+          <div class="mb-1.5">
+            <span class="inline-block text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+              Jam Rawan: ${escapeHtml(hoursText)}
+            </span>
+          </div>
+          ${photoBlock}
           <p class="text-[11px] text-slate-600 mb-2.5 leading-relaxed">${escapeHtml(report.description)}</p>
           <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
             <button
@@ -977,10 +1471,23 @@ function renderMarkers(shouldFitBounds = false) {
 async function renderRouteLine() {
   if (!map || !L || !routeLayerGroup) return
 
+  if (!props.activeRouteHaven) {
+    osrmRouteStats.value = null
+    if (commuteRoutes.value.length > 0) {
+      renderCommuteRoutesOnMap()
+    } else {
+      routeLayerGroup.clearLayers()
+    }
+    return
+  }
+
+  commuteRoutes.value = []
+  if (destMarker && map) {
+    map.removeLayer(destMarker)
+    destMarker = null
+  }
   routeLayerGroup.clearLayers()
   osrmRouteStats.value = null
-
-  if (!props.activeRouteHaven) return
 
   const targetHaven = props.activeRouteHaven
   isFetchingRoute.value = true

@@ -5,7 +5,7 @@
         <h2 class="font-bold text-sm sm:text-base tracking-tight text-slate-900">Laporan Warga</h2>
         <InfoPopover
           title="Laporan Warga"
-          content="Daftar laporan jalan rawan terdekat di wilayah ini. Klik baris laporan untuk membuka detail pinnya di peta, atau gunakan tombol kategori di bawah untuk menyaring."
+          content="Daftar laporan jalan rawan terdekat di wilayah ini lengkap dengan rentang jam rawan dan bukti foto. Klik baris laporan untuk membuka detail pinnya di peta."
           label="Penjelasan daftar laporan warga"
         />
       </div>
@@ -21,7 +21,7 @@
 
     <div
       v-if="filteredRecentReports.length"
-      class="space-y-2 my-1 max-h-[210px] overflow-y-auto pr-1"
+      class="space-y-2 my-1 max-h-[225px] overflow-y-auto pr-1"
     >
       <button
         v-for="item in filteredRecentReports"
@@ -30,6 +30,13 @@
         @click="$emit('focusReport', item)"
         class="w-full p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-left transition-colors flex items-center justify-between gap-3 group"
       >
+        <img
+          v-if="item.photoUrl"
+          :src="item.photoUrl"
+          :alt="item.title"
+          class="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
+        />
+
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 mb-0.5">
             <span
@@ -49,6 +56,17 @@
           <p class="text-xs text-slate-600 truncate pl-4">
             {{ item.description }}
           </p>
+          <div class="flex flex-wrap items-center gap-1.5 pl-4 mt-1">
+            <span class="text-[10px] font-semibold text-slate-700 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-md">
+              Jam Rawan: {{ item.vulnerableHours || defaultHours(item.category) }}
+            </span>
+            <span
+              v-if="item.photoUrl"
+              class="text-[10px] font-semibold text-sky-800 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded-md"
+            >
+              Foto Bukti
+            </span>
+          </div>
         </div>
 
         <div class="flex flex-col items-end gap-1 shrink-0">
@@ -119,6 +137,13 @@ defineEmits<{
   (e: 'focusReport', report: Report): void
   (e: 'selectCategory', category: string): void
 }>()
+
+function defaultHours(cat: string): string {
+  if (cat === 'begal') return '23:00 - 04:00 WIB'
+  if (cat === 'geng_motor') return '00:00 - 04:30 WIB'
+  if (cat === 'gelap') return '18:30 - 05:30 WIB'
+  return '22:00 - 04:00 WIB'
+}
 
 const filteredRecentReports = computed(() => {
   const list =
