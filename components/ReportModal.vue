@@ -86,10 +86,16 @@
                   : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
               ]"
             >
-              <span class="w-2 h-2 rounded-full bg-rose-500 mt-1 shrink-0"></span>
+              <span class="w-7 h-7 rounded-lg bg-[#160910] border border-rose-400/60 text-rose-300 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3 4 7v5c0 5 3.4 9.3 8 10 4.6-.7 8-5 8-10V7l-8-4Z"/>
+                  <path d="M12 8v4.5"/>
+                  <circle cx="12" cy="15.5" r="1" fill="currentColor" stroke="none"/>
+                </svg>
+              </span>
               <div>
                 <div class="font-semibold">Begal &amp; Kejahatan</div>
-                <div :class="['text-[11px]', form.category === 'begal' ? 'text-slate-300' : 'text-slate-600']">Pin Merah</div>
+                <div :class="['text-[11px]', form.category === 'begal' ? 'text-slate-300' : 'text-slate-600']">Radar Kritis</div>
               </div>
             </button>
 
@@ -104,10 +110,17 @@
                   : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
               ]"
             >
-              <span class="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0"></span>
+              <span class="w-7 h-7 rounded-lg bg-[#180a0d] border border-rose-300/65 text-rose-200 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="5.5" cy="17" r="2.5"/>
+                  <circle cx="18.5" cy="17" r="2.5"/>
+                  <path d="M8 17h5l2-5.5-3.5-1.5-2.5 3H6.5L8 17Z"/>
+                  <path d="M13 6h3l2 4"/>
+                </svg>
+              </span>
               <div>
                 <div class="font-semibold">Geng Motor / Tawuran</div>
-                <div :class="['text-[11px]', form.category === 'geng_motor' ? 'text-slate-300' : 'text-slate-600']">Pin Merah</div>
+                <div :class="['text-[11px]', form.category === 'geng_motor' ? 'text-slate-300' : 'text-slate-600']">Radar Konvoi</div>
               </div>
             </button>
 
@@ -122,10 +135,16 @@
                   : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
               ]"
             >
-              <span class="w-2 h-2 rounded-full bg-yellow-500 mt-1 shrink-0"></span>
+              <span class="w-7 h-7 rounded-lg bg-[#141008] border border-amber-400/60 text-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M6 20V6a3 3 0 0 1 3-3h6"/>
+                  <path d="M13 3h5l1 3h-7l1-3Z"/>
+                  <path d="m14 10 4 4m0-4-4 4"/>
+                </svg>
+              </span>
               <div>
                 <div class="font-semibold">Jalan Gelap / PJU Mati</div>
-                <div :class="['text-[11px]', form.category === 'gelap' ? 'text-slate-300' : 'text-slate-600']">Pin Kuning</div>
+                <div :class="['text-[11px]', form.category === 'gelap' ? 'text-slate-300' : 'text-slate-600']">Pin Waspada</div>
               </div>
             </button>
 
@@ -140,10 +159,15 @@
                   : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
               ]"
             >
-              <span class="w-2 h-2 rounded-full bg-slate-400 mt-1 shrink-0"></span>
+              <span class="w-7 h-7 rounded-lg bg-[#141008] border border-amber-400/60 text-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 20 9 4m11 16L15 4"/>
+                  <path d="M12 6v2m0 3v2m0 3v3"/>
+                </svg>
+              </span>
               <div>
                 <div class="font-semibold">Jalan Sepi &amp; Rawan</div>
-                <div :class="['text-[11px]', form.category === 'sepi' ? 'text-slate-300' : 'text-slate-600']">Pin Kuning</div>
+                <div :class="['text-[11px]', form.category === 'sepi' ? 'text-slate-300' : 'text-slate-600']">Pin Waspada</div>
               </div>
             </button>
           </div>

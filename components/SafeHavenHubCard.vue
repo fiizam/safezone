@@ -38,9 +38,55 @@
       class="my-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col justify-between gap-3"
     >
       <div class="flex items-center justify-between gap-2">
-        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800">
-          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-          {{ havenTypeLabel(currentItem.haven.type) }}
+        <span class="inline-flex items-center gap-2 text-xs font-bold text-emerald-900">
+          <span class="w-6 h-6 rounded-lg bg-[#071512] border border-emerald-400/60 text-emerald-300 inline-flex items-center justify-center shrink-0">
+            <svg
+              v-if="currentItem.haven.type === 'pos_polisi'"
+              class="w-3.5 h-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 2.8 4.5 6v5.6c0 5.1 3.2 9.3 7.5 10.4 4.3-1.1 7.5-5.3 7.5-10.4V6L12 2.8Z"/>
+              <path d="M12 7.5 13.3 10.3 16.2 10.7 14 12.7 14.6 15.6 12 14.1 9.4 15.6 10 12.7 7.8 10.7 10.7 10.3 12 7.5Z" fill="currentColor" stroke="none"/>
+            </svg>
+            <svg
+              v-else-if="currentItem.haven.type === 'spbu'"
+              class="w-3.5 h-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="4" y="3.5" width="10" height="17" rx="2"/>
+              <line x1="2.5" y1="20.5" x2="15.5" y2="20.5"/>
+              <line x1="6.5" y1="7.5" x2="11.5" y2="7.5"/>
+              <path d="M14 11.5h2a2 2 0 0 1 2 2v3a1.75 1.75 0 0 0 3.5 0V9.2a2 2 0 0 0-.6-1.4L18 5"/>
+            </svg>
+            <svg
+              v-else
+              class="w-3.5 h-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3.5 9.5 5.2 4h13.6l1.7 5.5"/>
+              <path d="M3.5 9.5a2.8 2.8 0 0 0 5.6 0 2.8 2.8 0 0 0 5.8 0 2.8 2.8 0 0 0 5.6 0"/>
+              <path d="M5 9.8V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9.8"/>
+            </svg>
+          </span>
+          <span>{{ havenTypeLabel(currentItem.haven.type) }}</span>
         </span>
         <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 tabular-nums">
           {{ currentItem.distanceLabel }} · ~{{ currentItem.motorMinutes }} mnt

@@ -492,6 +492,115 @@
         </span>
       </div>
     </div>
+
+    <div
+      class="px-3.5 sm:px-4 py-2.5 bg-[#0b0f19] border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300"
+      role="region"
+      aria-label="Legenda Taksonomi Pin Peta dan Saringan Cepat"
+    >
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1 hidden xl:inline">
+          Taksonomi Pin:
+        </span>
+
+        <button
+          type="button"
+          @click="$emit('update:category', activeCategory === 'begal' ? 'all' : 'begal')"
+          :aria-pressed="activeCategory === 'begal'"
+          :class="[
+            'sz-legend-chip',
+            activeCategory === 'begal' ? 'sz-legend-chip--active-danger' : ''
+          ]"
+          title="Saring titik rawan Begal & Kejahatan"
+        >
+          <span class="sz-legend-icon sz-legend-icon--danger">
+            <span class="sz-legend-pulse-danger"></span>
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3 4 7v5c0 5 3.4 9.3 8 10 4.6-.7 8-5 8-10V7l-8-4Z" stroke-linejoin="round"/>
+              <path d="M12 8v4.5" stroke-linecap="round"/>
+              <circle cx="12" cy="15.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </span>
+          <span>Begal / Kriminal</span>
+        </button>
+
+        <button
+          type="button"
+          @click="$emit('update:category', activeCategory === 'geng_motor' ? 'all' : 'geng_motor')"
+          :aria-pressed="activeCategory === 'geng_motor'"
+          :class="[
+            'sz-legend-chip',
+            activeCategory === 'geng_motor' ? 'sz-legend-chip--active-danger' : ''
+          ]"
+          title="Saring titik rawan Geng Motor & Konvoi Liar"
+        >
+          <span class="sz-legend-icon sz-legend-icon--convoy">
+            <span class="sz-legend-pulse-danger"></span>
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="5.5" cy="17.5" r="2.5"/>
+              <circle cx="18.5" cy="17.5" r="2.5"/>
+              <path d="M8 17.5h5l2-5.5-3.5-1.5-2.5 3H6.5L8 17.5Z" stroke-linejoin="round"/>
+              <path d="M13 6.5h3l2 4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span>Geng Motor</span>
+        </button>
+
+        <button
+          type="button"
+          @click="$emit('update:category', activeCategory === 'gelap' ? 'all' : 'gelap')"
+          :aria-pressed="activeCategory === 'gelap'"
+          :class="[
+            'sz-legend-chip',
+            activeCategory === 'gelap' ? 'sz-legend-chip--active-warning' : ''
+          ]"
+          title="Saring titik Jalan Gelap & Lampu PJU Mati"
+        >
+          <span class="sz-legend-icon sz-legend-icon--warning">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 21V6a3 3 0 0 1 3-3h6" stroke-linecap="round"/>
+              <path d="M13 3h5l1 3h-7l1-3Z" stroke-linejoin="round"/>
+              <path d="m14 10 4 4m0-4-4 4" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span>PJU Mati / Gelap</span>
+        </button>
+
+        <button
+          type="button"
+          @click="$emit('update:category', activeCategory === 'sepi' ? 'all' : 'sepi')"
+          :aria-pressed="activeCategory === 'sepi'"
+          :class="[
+            'sz-legend-chip',
+            activeCategory === 'sepi' ? 'sz-legend-chip--active-warning' : ''
+          ]"
+          title="Saring titik Jalan Sepi & Minim Pengawasan"
+        >
+          <span class="sz-legend-icon sz-legend-icon--warning">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 20 9 4m11 16L15 4" stroke-linecap="round"/>
+              <path d="M12 6v2m0 3v2m0 3v3" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span>Jalan Sepi</span>
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] text-slate-300">
+        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/90 border border-emerald-500/30 text-emerald-300 font-semibold">
+          <span class="relative flex h-2 w-2">
+            <span class="sz-legend-beacon-ring"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+          </span>
+          <span>Pos Polisi · SPBU · Mart 24J</span>
+        </span>
+
+        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80 text-slate-300 font-medium">
+          <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+          <span>✓ Kondusif</span>
+        </span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -792,12 +901,7 @@ function renderCommuteRoutesOnMap() {
       if (destMarker) {
         map.removeLayer(destMarker)
       }
-      const destIcon = L.divIcon({
-        className: 'sz-custom-pin',
-        html: `<div class="px-2.5 py-1 rounded-full bg-slate-900 text-white border-2 border-emerald-400 text-[10px] font-extrabold shadow-lg whitespace-nowrap">Tujuan (B)</div>`,
-        iconSize: [76, 26],
-        iconAnchor: [38, 13]
-      })
+      const destIcon = createDestinationPin()
       destMarker = L.marker([destCoords.value.lat, destCoords.value.lng], { icon: destIcon }).addTo(map)
     }
 
@@ -1086,135 +1190,255 @@ function createUserPin() {
     className: 'sz-custom-pin',
     html: `
       <div class="sz-user-beacon" title="Titik Posisi Anda (Geser untuk ubah titik awal)">
-        <span class="sz-sonar-ring"></span>
-        <span class="sz-sonar-ring sz-sonar-delay"></span>
+        <span class="sz-user-fov" aria-hidden="true"></span>
+        <span class="sz-sonar-ring" aria-hidden="true"></span>
+        <span class="sz-sonar-ring sz-sonar-delay" aria-hidden="true"></span>
         <div class="sz-user-core">
-          <span class="sz-user-dot"></span>
+          <svg class="sz-user-heading" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3.5 18 19l-6-3.2L6 19 12 3.5Z" fill="currentColor"/>
+          </svg>
         </div>
       </div>
     `,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -18]
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+    popupAnchor: [0, -20]
   })
 }
 
-function createDangerPin(category: string, isResolved: boolean) {
-  const isGang = category === 'geng_motor'
-  const svgIcon = isGang
-    ? `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-       </svg>`
-    : `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-         <line x1="12" y1="9" x2="12" y2="13"/>
-         <line x1="12" y1="17" x2="12.01" y2="17"/>
-       </svg>`
-
-  const resolvedBadge = isResolved
-    ? `<span class="sz-resolved-badge" title="Mulai Kondusif">✓</span>`
-    : ''
-
+function createDestinationPin() {
   return L.divIcon({
     className: 'sz-custom-pin',
     html: `
-      <div class="sz-pin-wrapper sz-pin-danger group">
-        ${isResolved ? '' : '<span class="sz-danger-pulse"></span><span class="sz-danger-pulse sz-pulse-delay"></span>'}
-        <div class="sz-pin-body sz-body-danger">
-          ${resolvedBadge}
-          <div class="sz-pin-inner-ring">
-            ${svgIcon}
-          </div>
+      <div class="sz-dest-pin">
+        <div class="sz-dest-pill">
+          <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+            <line x1="4" y1="22" x2="4" y2="15"/>
+          </svg>
+          <span>TUJUAN (B)</span>
         </div>
-        <div class="sz-pin-tip sz-tip-danger"></div>
-        <div class="sz-pin-shadow"></div>
+        <span class="sz-pin-stem sz-stem-haven"></span>
+        <span class="sz-pin-ground-dot sz-ground-haven"></span>
+      </div>
+    `,
+    iconSize: [96, 42],
+    iconAnchor: [48, 39],
+    popupAnchor: [0, -36]
+  })
+}
+
+function createPickerPin() {
+  return L.divIcon({
+    className: 'sz-custom-pin',
+    html: `
+      <div class="sz-picker-pin" title="Geser untuk sesuaikan titik laporan">
+        <span class="sz-picker-ring" aria-hidden="true"></span>
+        <div class="sz-picker-head">
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+            <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+          </svg>
+        </div>
+        <span class="sz-pin-stem sz-stem-haven"></span>
+        <span class="sz-pin-ground-dot sz-ground-haven"></span>
       </div>
     `,
     iconSize: [44, 52],
-    iconAnchor: [22, 48],
+    iconAnchor: [22, 49],
     popupAnchor: [0, -44]
   })
 }
 
-function createWarningPin(category: string, isResolved: boolean) {
-  const isDarkRoad = category === 'gelap'
-  const svgIcon = isDarkRoad
-    ? `<svg class="w-4 h-4 text-slate-950 sz-flicker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-         <path d="M9 18h6"/>
-         <path d="M10 22h4"/>
-         <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
-       </svg>`
-    : `<svg class="w-4 h-4 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-       </svg>`
+function getCategoryGlyphSvg(category: string, isResolved: boolean): { svg: string; microTag: string } {
+  if (isResolved) {
+    return {
+      microTag: 'KONDUSIF',
+      svg: `
+        <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3 4.5 6.5v5.2c0 4.8 3.2 8.9 7.5 9.8 4.3-.9 7.5-5 7.5-9.8V6.5L12 3Z" fill="currentColor" fill-opacity="0.16"/>
+          <path d="m8.8 12.2 2.2 2.2 4.4-4.5" stroke-width="2.3"/>
+        </svg>
+      `
+    }
+  }
 
-  const resolvedBadge = isResolved
-    ? `<span class="sz-resolved-badge" title="Mulai Kondusif">✓</span>`
-    : ''
+  if (category === 'begal') {
+    return {
+      microTag: 'BEGAL',
+      svg: `
+        <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8m8 0h2.5A1.5 1.5 0 0 1 20 5.5V8m0 8v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" stroke-opacity="0.65" stroke-width="1.75"/>
+          <path d="M12 5.5 6.5 8.2v4.1c0 3.5 2.3 6.5 5.5 7.2 3.2-.7 5.5-3.7 5.5-7.2V8.2L12 5.5Z" fill="currentColor" fill-opacity="0.2"/>
+          <path d="M12 9.2v3.6" stroke-width="2.3"/>
+          <circle cx="12" cy="15.5" r="1.15" fill="currentColor" stroke="none"/>
+        </svg>
+      `
+    }
+  }
+
+  if (category === 'geng_motor') {
+    return {
+      microTag: 'KONVOI',
+      svg: `
+        <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="5.5" cy="16.5" r="2.75" fill="currentColor" fill-opacity="0.18"/>
+          <circle cx="18.5" cy="16.5" r="2.75" fill="currentColor" fill-opacity="0.18"/>
+          <path d="M8.2 16.5h4.8l2.1-5.2-3.6-1.3-2.4 3.2H6.5l1.7 3.3Z" fill="currentColor" fill-opacity="0.2"/>
+          <path d="M13.2 6.8h2.8l2.2 4.2"/>
+          <path d="M19.5 9.2 22 8.5m-2.5 2.5 2.5.4" stroke-width="1.75"/>
+          <path d="M4 9.5h3.5M2.5 12h3" stroke-opacity="0.75" stroke-width="1.65"/>
+        </svg>
+      `
+    }
+  }
+
+  if (category === 'gelap') {
+    return {
+      microTag: 'PJU MATI',
+      svg: `
+        <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5.5 20.5V6.5a3 3 0 0 1 3-3H15"/>
+          <path d="M3.5 20.5h4.5"/>
+          <path d="M12.5 3.5h5.2l1.3 2.8h-7.5l1-2.8Z" fill="currentColor" fill-opacity="0.25"/>
+          <path class="sz-svg-cone" d="M13 9.5 10.5 18m7-8.5L20 18" stroke-dasharray="2 2.5" stroke-opacity="0.65" stroke-width="1.6"/>
+          <path d="m13.2 11.2 4.2 4.2m0-4.2-4.2 4.2" stroke-width="2.1"/>
+        </svg>
+      `
+    }
+  }
+
+  return {
+    microTag: 'JALAN SEPI',
+    svg: `
+      <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3.5 19.5 8.8 4.5m11.7 15-5.3-15"/>
+        <path class="sz-svg-lane" d="M12 5v2.2m0 3.1v2.5m0 3.2v3.5" stroke-width="2.1"/>
+        <circle cx="17.5" cy="6.5" r="2" fill="currentColor" fill-opacity="0.3" stroke-width="1.6"/>
+      </svg>
+    `
+  }
+}
+
+function createReportPin(category: string, dangerLevel: string, isResolved: boolean) {
+  const isCritical = !isResolved && (category === 'begal' || category === 'geng_motor' || dangerLevel === 'high')
+  const isConvoy = !isResolved && category === 'geng_motor'
+  const { svg, microTag } = getCategoryGlyphSvg(category, isResolved)
+
+  const toneClass = isResolved
+    ? 'sz-tone-resolved'
+    : isConvoy
+      ? 'sz-tone-convoy'
+      : isCritical
+        ? 'sz-tone-danger'
+        : 'sz-tone-warning'
+
+  const radarRingMarkup = isResolved
+    ? ''
+    : isCritical
+      ? `
+        <span class="sz-telemetry-wave sz-wave-danger" aria-hidden="true"></span>
+        <span class="sz-telemetry-wave sz-wave-danger sz-wave-delay" aria-hidden="true"></span>
+        <svg class="sz-radar-Arc" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="17.5" stroke="currentColor" stroke-opacity="0.22" stroke-width="1"/>
+          <path d="M20 2.5 A17.5 17.5 0 0 1 37.5 20" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        </svg>
+      `
+      : `
+        <span class="sz-telemetry-wave sz-wave-warning" aria-hidden="true"></span>
+        <svg class="sz-radar-Arc sz-radar-Arc--slow" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 3"/>
+        </svg>
+      `
+
+  const statusPipMarkup = isResolved
+    ? `<span class="sz-status-pip sz-pip-resolved" title="Mulai Kondusif">✓</span>`
+    : `<span class="sz-status-pip ${isCritical ? 'sz-pip-danger' : 'sz-pip-warning'}">
+         <span class="sz-pip-ring"></span>
+         <span class="sz-pip-dot"></span>
+       </span>`
 
   return L.divIcon({
     className: 'sz-custom-pin',
     html: `
-      <div class="sz-pin-wrapper sz-pin-warning group">
-        <span class="sz-warning-halo"></span>
-        <div class="sz-pin-body sz-body-warning">
-          ${resolvedBadge}
-          <div class="sz-pin-inner-amber">
-            ${svgIcon}
+      <div class="sz-pin-wrapper ${toneClass}">
+        <span class="sz-micro-tag">${microTag}</span>
+        <div class="sz-pin-stage">
+          ${radarRingMarkup}
+          <div class="sz-pin-chassis">
+            ${statusPipMarkup}
+            ${svg}
           </div>
         </div>
-        <div class="sz-pin-tip sz-tip-warning"></div>
-        <div class="sz-pin-shadow"></div>
+        <span class="sz-pin-stem"></span>
+        <span class="sz-pin-ground-dot"></span>
       </div>
     `,
-    iconSize: [40, 48],
-    iconAnchor: [20, 44],
-    popupAnchor: [0, -40]
+    iconSize: [48, 56],
+    iconAnchor: [24, 52],
+    popupAnchor: [0, -48]
   })
 }
 
 function createHavenPin(type: string) {
   let svgIcon = ''
+  let microTag = 'POS 24J'
+  let subtypeClass = 'sz-haven-mart'
+
   if (type === 'pos_polisi') {
+    microTag = 'POLISI 24J'
+    subtypeClass = 'sz-haven-police'
     svgIcon = `
-      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="m9 12 2 2 4-4"/>
+      <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2.8 4.5 6v5.6c0 5.1 3.2 9.3 7.5 10.4 4.3-1.1 7.5-5.3 7.5-10.4V6L12 2.8Z" fill="currentColor" fill-opacity="0.2"/>
+        <path d="M12 7.5 13.3 10.3 16.2 10.7 14 12.7 14.6 15.6 12 14.1 9.4 15.6 10 12.7 7.8 10.7 10.7 10.3 12 7.5Z" fill="currentColor" stroke="none"/>
       </svg>`
   } else if (type === 'spbu') {
+    microTag = 'SPBU 24J'
+    subtypeClass = 'sz-haven-spbu'
     svgIcon = `
-      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="22" x2="15" y2="22"/>
-        <line x1="4" y1="9" x2="14" y2="9"/>
-        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/>
-        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/>
+      <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="4" y="3.5" width="10" height="17" rx="2" fill="currentColor" fill-opacity="0.18"/>
+        <line x1="2.5" y1="20.5" x2="15.5" y2="20.5"/>
+        <line x1="6.5" y1="7.5" x2="11.5" y2="7.5"/>
+        <path d="M14 11.5h2a2 2 0 0 1 2 2v3a1.75 1.75 0 0 0 3.5 0V9.2a2 2 0 0 0-.6-1.4L18 5"/>
+        <circle cx="9" cy="14" r="1.4" fill="currentColor" stroke="none"/>
       </svg>`
   } else {
+    microTag = 'MART 24J'
+    subtypeClass = 'sz-haven-mart'
     svgIcon = `
-      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
+      <svg class="sz-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3.5 9.5 5.2 4h13.6l1.7 5.5" fill="currentColor" fill-opacity="0.2"/>
+        <path d="M3.5 9.5a2.8 2.8 0 0 0 5.6 0 2.8 2.8 0 0 0 5.8 0 2.8 2.8 0 0 0 5.6 0"/>
+        <path d="M5 9.8V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9.8"/>
+        <path d="M9.5 20.5v-5.5h5v5.5"/>
       </svg>`
   }
 
   return L.divIcon({
     className: 'sz-custom-pin',
     html: `
-      <div class="sz-pin-wrapper sz-pin-haven group">
-        <span class="sz-haven-glow"></span>
-        <div class="sz-pin-body sz-body-haven">
-          <span class="sz-live-badge"></span>
-          <div class="sz-pin-inner-ring">
+      <div class="sz-pin-wrapper sz-tone-haven ${subtypeClass}">
+        <span class="sz-micro-tag">${microTag}</span>
+        <div class="sz-pin-stage">
+          <span class="sz-telemetry-wave sz-wave-haven" aria-hidden="true"></span>
+          <div class="sz-pin-chassis">
+            <span class="sz-status-pip sz-pip-haven" title="Siaga 24 Jam">
+              <span class="sz-pip-ring"></span>
+              <span class="sz-pip-dot"></span>
+            </span>
             ${svgIcon}
           </div>
         </div>
-        <div class="sz-pin-tip sz-tip-haven"></div>
-        <div class="sz-pin-shadow"></div>
+        <span class="sz-pin-stem"></span>
+        <span class="sz-pin-ground-dot"></span>
       </div>
     `,
-    iconSize: [44, 52],
-    iconAnchor: [22, 48],
-    popupAnchor: [0, -44]
+    iconSize: [48, 56],
+    iconAnchor: [24, 52],
+    popupAnchor: [0, -48]
   })
 }
 
@@ -1273,11 +1497,8 @@ function renderMarkers(shouldFitBounds = false) {
 
     filteredReports.forEach((report) => {
       visiblePoints.push([report.latitude, report.longitude])
-      const isRedPin = report.category === 'begal' || report.category === 'geng_motor'
       const isResolved = (report.resolvedCount || 0) >= 3
-      const icon = isRedPin
-        ? createDangerPin(report.category, isResolved)
-        : createWarningPin(report.category, isResolved)
+      const icon = createReportPin(report.category, report.dangerLevel, isResolved)
       const marker = L.marker([report.latitude, report.longitude], { icon })
       reportMarkersMap.set(report.id, marker)
 
@@ -1554,7 +1775,10 @@ function setPickerLocation(lat: number, lng: number) {
   if (pickerMarker) {
     pickerMarker.setLatLng([lat, lng])
   } else {
-    pickerMarker = L.marker([lat, lng], { draggable: true }).addTo(map)
+    pickerMarker = L.marker([lat, lng], {
+      icon: createPickerPin(),
+      draggable: true
+    }).addTo(map)
     pickerMarker.on('dragend', (e: any) => {
       const pos = e.target.getLatLng()
       emit('selectLocation', { lat: pos.lat, lng: pos.lng })
@@ -1636,6 +1860,16 @@ defineExpose({
 </script>
 
 <style>
+:root {
+  --m-in: 150ms;
+  --m-out: 120ms;
+  --m-press: 90ms;
+  --m-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --m-ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --m-cycle: 3.2s;
+  --m-live: 2.4s;
+}
+
 .argologistics-style-tiles {
   filter: invert(100%) hue-rotate(170deg) brightness(85%) contrast(120%) saturate(140%);
 }
@@ -1673,7 +1907,7 @@ defineExpose({
   justify-content: center !important;
   text-align: center !important;
   padding: 0 !important;
-  transition: background-color 0.15s ease, color 0.15s ease !important;
+  transition: background-color var(--m-out) var(--m-ease), color var(--m-out) var(--m-ease) !important;
 }
 
 .safezone-light-popup .leaflet-popup-close-button:hover {
@@ -1686,194 +1920,300 @@ defineExpose({
   border: none !important;
 }
 
+/* ============================================================================
+   TACTICAL MAP MARKER SYSTEM (design-taste-frontend anti-slop motion & craft)
+   - Two-level max hierarchy: stage > chassis (no 3-level nested translucent boxes)
+   - Solid architectural dark-ink housing (#0b0f17) + 1px semantic hairline
+   - Anchored ground coordinate dot & stem (never floats/bobs off its street point)
+   - Purposeful telemetry rings (2.4s live dot / 3.2s radar cycle, transform+opacity only)
+   - Fine-pointer hover steps up 2px in 150ms (--m-ease), press steps down 1px (.985)
+   ============================================================================ */
+
 .sz-pin-wrapper {
+  --sz-accent: #10b981;
+  --sz-accent-soft: rgba(16, 185, 129, 0.2);
+  --sz-border: rgba(52, 211, 153, 0.55);
+  --sz-surface: #0b0f17;
+  --sz-glyph-color: #ecfdf5;
   position: relative;
-  width: 44px;
-  height: 52px;
+  width: 48px;
+  height: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
+  padding-bottom: 2px;
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
 }
 
-.sz-pin-wrapper:hover {
-  transform: translateY(-5px) scale(1.1);
-  z-index: 900;
+.sz-tone-danger {
+  --sz-accent: #f43f5e;
+  --sz-accent-soft: rgba(244, 63, 94, 0.24);
+  --sz-border: rgba(251, 113, 133, 0.68);
+  --sz-surface: #160910;
+  --sz-glyph-color: #ffe4e6;
 }
 
-.sz-pin-body {
+.sz-tone-convoy {
+  --sz-accent: #fb7185;
+  --sz-accent-soft: rgba(251, 113, 133, 0.24);
+  --sz-border: rgba(253, 164, 175, 0.72);
+  --sz-surface: #180a0d;
+  --sz-glyph-color: #fff1f2;
+}
+
+.sz-tone-warning {
+  --sz-accent: #f59e0b;
+  --sz-accent-soft: rgba(245, 158, 11, 0.2);
+  --sz-border: rgba(251, 191, 36, 0.62);
+  --sz-surface: #141008;
+  --sz-glyph-color: #fef3c7;
+}
+
+.sz-tone-haven {
+  --sz-accent: #10b981;
+  --sz-accent-soft: rgba(16, 185, 129, 0.2);
+  --sz-border: rgba(52, 211, 153, 0.62);
+  --sz-surface: #071512;
+  --sz-glyph-color: #d1fae5;
+}
+
+.sz-haven-police {
+  --sz-accent: #14b8a6;
+  --sz-accent-soft: rgba(20, 184, 166, 0.22);
+  --sz-border: rgba(45, 212, 191, 0.68);
+  --sz-surface: #071418;
+  --sz-glyph-color: #ccfbf1;
+}
+
+.sz-tone-resolved {
+  --sz-accent: #2dd4bf;
+  --sz-accent-soft: rgba(45, 212, 191, 0.14);
+  --sz-border: rgba(94, 234, 212, 0.45);
+  --sz-surface: #0d151c;
+  --sz-glyph-color: #99f6e4;
+}
+
+.sz-pin-stage {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--m-out) var(--m-ease);
+}
+
+.sz-pin-chassis {
   position: relative;
   z-index: 2;
   width: 34px;
   height: 34px;
-  border-radius: 12px;
+  border-radius: 10px;
+  background-color: var(--sz-surface);
+  border: 1.25px solid var(--sz-border);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(9, 13, 22, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 18px -3px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  color: var(--sz-glyph-color);
+  transition:
+    border-color var(--m-out) var(--m-ease),
+    background-color var(--m-out) var(--m-ease),
+    transform var(--m-out) var(--m-ease);
 }
 
-.sz-body-danger {
-  background: linear-gradient(145deg, #fb7185 0%, #e11d48 55%, #9f1239 100%);
-  border: 1.5px solid #ffe4e6;
+.sz-tone-danger .sz-pin-chassis,
+.sz-tone-convoy .sz-pin-chassis {
+  border-radius: 10px;
+  background-image: radial-gradient(circle at 50% 0%, rgba(244, 63, 94, 0.26), transparent 70%);
 }
 
-.sz-body-warning {
-  width: 32px;
-  height: 32px;
+.sz-tone-warning .sz-pin-chassis {
+  border-radius: 10px;
+  background-image: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.22), transparent 70%);
+}
+
+.sz-tone-haven .sz-pin-chassis {
   border-radius: 11px;
-  background: linear-gradient(145deg, #fde047 0%, #f59e0b 65%, #d97706 100%);
-  border: 1.5px solid #fef9c3;
+  background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.24), transparent 70%);
 }
 
-.sz-body-haven {
-  background: linear-gradient(145deg, #34d399 0%, #059669 60%, #065f46 100%);
-  border: 1.5px solid #d1fae5;
-  animation: sz-haven-float 3.2s ease-in-out infinite;
+.sz-glyph {
+  width: 18px;
+  height: 18px;
+  color: var(--sz-glyph-color);
+  flex-shrink: 0;
 }
 
-.sz-pin-inner-ring {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sz-pin-inner-amber {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.32);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sz-pin-tip {
-  width: 9px;
-  height: 9px;
-  transform: rotate(45deg);
-  margin-top: -5px;
-  z-index: 1;
-  border-radius: 1.5px;
-}
-
-.sz-tip-danger {
-  background: #9f1239;
-  border-right: 1.5px solid #ffe4e6;
-  border-bottom: 1.5px solid #ffe4e6;
-}
-
-.sz-tip-warning {
-  background: #d97706;
-  border-right: 1.5px solid #fef9c3;
-  border-bottom: 1.5px solid #fef9c3;
-}
-
-.sz-tip-haven {
-  background: #065f46;
-  border-right: 1.5px solid #d1fae5;
-  border-bottom: 1.5px solid #d1fae5;
-  animation: sz-haven-float 3.2s ease-in-out infinite;
-}
-
-.sz-pin-shadow {
-  width: 14px;
-  height: 4px;
-  border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.55);
-  filter: blur(1px);
-  margin-top: 2px;
-}
-
-.sz-danger-pulse {
+.sz-micro-tag {
   position: absolute;
-  top: 2px;
-  left: 7px;
-  width: 30px;
-  height: 30px;
-  border-radius: 12px;
-  background: rgba(244, 63, 94, 0.45);
-  border: 1.5px solid rgba(251, 113, 133, 0.8);
+  top: -8px;
+  left: 50%;
+  transform: translate(-50%, 3px);
+  z-index: 4;
+  padding: 1.5px 5px;
+  border-radius: 5px;
+  background: #090d16;
+  color: var(--sz-glyph-color);
+  border: 1px solid var(--sz-border);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--m-out) var(--m-ease),
+    transform var(--m-out) var(--m-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sz-pin-wrapper:hover {
+    z-index: 950;
+  }
+
+  .sz-pin-wrapper:hover .sz-pin-stage {
+    transform: translateY(-2px);
+    transition-duration: var(--m-in);
+  }
+
+  .sz-pin-wrapper:hover .sz-pin-chassis {
+    border-color: var(--sz-accent);
+  }
+
+  .sz-pin-wrapper:hover .sz-micro-tag {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-duration: var(--m-in);
+  }
+
+  .sz-pin-wrapper:active .sz-pin-stage {
+    transform: translateY(1px) scale(0.985);
+    transition-duration: var(--m-press);
+  }
+}
+
+.sz-pin-stem {
+  width: 2px;
+  height: 7px;
+  background: var(--sz-accent);
+  opacity: 0.85;
+  z-index: 1;
+}
+
+.sz-pin-ground-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--sz-accent);
+  border: 1.5px solid #090d16;
+  box-shadow: 0 0 0 2px var(--sz-accent-soft);
+  z-index: 1;
+}
+
+/* Status Pip (Top-Right Corner Telemetry Indicator) */
+.sz-status-pip {
+  position: absolute;
+  top: -3.5px;
+  right: -3.5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #090d16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+.sz-pip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--sz-accent);
+}
+
+.sz-pip-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  border: 1.25px solid var(--sz-accent);
+  opacity: 0;
+  animation: sz-live-dot-ring var(--m-live) var(--m-ease) infinite;
+}
+
+.sz-pip-resolved {
+  width: 13px;
+  height: 13px;
+  top: -4px;
+  right: -4px;
+  background: #0d9488;
+  color: #ffffff;
+  border: 1.5px solid #090d16;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Telemetry Waves & Radar Sweep (transform & opacity only, 2.4s - 3.2s cycle) */
+.sz-telemetry-wave {
+  position: absolute;
+  inset: 1px;
+  border-radius: 10px;
+  border: 1.25px solid var(--sz-accent);
+  background: var(--sz-accent-soft);
   z-index: 0;
   pointer-events: none;
-  animation: sz-radar-wave 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
-.sz-pulse-delay {
+.sz-wave-danger {
+  animation: sz-perimeter-pulse var(--m-live) var(--m-ease) infinite;
+}
+
+.sz-wave-delay {
   animation-delay: 1.2s;
 }
 
-.sz-warning-halo {
+.sz-wave-warning {
+  animation: sz-warning-pulse var(--m-cycle) var(--m-ease) infinite;
+}
+
+.sz-wave-haven {
+  border-radius: 11px;
+  animation: sz-haven-pulse var(--m-cycle) var(--m-ease) infinite;
+}
+
+.sz-radar-Arc {
   position: absolute;
-  top: 0px;
-  left: 4px;
-  width: 32px;
-  height: 32px;
-  border-radius: 12px;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.55) 0%, rgba(251, 191, 36, 0) 72%);
-  z-index: 0;
-  pointer-events: none;
-  animation: sz-amber-breathe 2.6s ease-in-out infinite;
-}
-
-.sz-flicker-icon {
-  animation: sz-lamp-flicker 3.5s infinite;
-}
-
-.sz-haven-glow {
-  position: absolute;
-  top: 2px;
-  left: 7px;
-  width: 30px;
-  height: 30px;
-  border-radius: 12px;
-  background: rgba(16, 185, 129, 0.35);
-  filter: blur(5px);
-  z-index: 0;
-  pointer-events: none;
-  animation: sz-amber-breathe 3s ease-in-out infinite;
-}
-
-.sz-live-badge {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 9px;
-  height: 9px;
-  border-radius: 9999px;
-  background: #4ade80;
-  border: 1.5px solid #064e3b;
-  box-shadow: 0 0 6px #4ade80;
-}
-
-.sz-resolved-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 14px;
-  height: 14px;
-  border-radius: 9999px;
-  background: #10b981;
-  color: #ffffff;
-  font-size: 9px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.sz-user-beacon {
-  position: relative;
+  inset: -4px;
   width: 44px;
   height: 44px;
+  color: var(--sz-accent);
+  z-index: 1;
+  pointer-events: none;
+  animation: sz-radar-spin var(--m-cycle) linear infinite;
+}
+
+.sz-radar-Arc--slow {
+  animation-duration: 6.4s;
+}
+
+.sz-svg-cone,
+.sz-svg-lane {
+  animation: sz-subtle-opacity var(--m-cycle) ease-in-out infinite;
+}
+
+/* User GPS Navigation Puck */
+.sz-user-beacon {
+  position: relative;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1884,100 +2224,295 @@ defineExpose({
   cursor: grabbing;
 }
 
+.sz-user-fov {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background: conic-gradient(from -35deg at 50% 50%, rgba(56, 189, 248, 0.32) 0deg, rgba(56, 189, 248, 0.02) 70deg, transparent 70deg);
+  pointer-events: none;
+  animation: sz-radar-spin 6.4s linear infinite;
+}
+
 .sz-sonar-ring {
   position: absolute;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 9999px;
-  background: rgba(56, 189, 248, 0.32);
-  border: 1.5px solid rgba(125, 211, 252, 0.7);
-  animation: sz-sonar-expand 2.6s ease-out infinite;
+  background: rgba(14, 165, 233, 0.16);
+  border: 1.25px solid rgba(56, 189, 248, 0.65);
+  animation: sz-sonar-expand var(--m-live) var(--m-ease) infinite;
   pointer-events: none;
 }
 
 .sz-sonar-delay {
-  animation-delay: 1.3s;
+  animation-delay: 1.2s;
 }
 
 .sz-user-core {
   position: relative;
   z-index: 2;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 9999px;
-  background: #ffffff;
-  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.8);
+  background: #090d16;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #38bdf8;
 }
 
-.sz-user-dot {
-  width: 11px;
-  height: 11px;
+.sz-user-heading {
+  width: 12px;
+  height: 12px;
+}
+
+/* Destination & Coordinate Picker Pins */
+.sz-dest-pin,
+.sz-picker-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sz-dest-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: #090d16;
+  color: #f8fafc;
+  border: 1.25px solid #34d399;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+.sz-picker-head {
+  position: relative;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #090d16;
+  border: 1.5px solid #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.sz-picker-ring {
+  position: absolute;
+  top: 2px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.25px solid #34d399;
+  animation: sz-perimeter-pulse var(--m-live) var(--m-ease) infinite;
+  pointer-events: none;
+}
+
+.sz-stem-haven {
+  background: #10b981;
+}
+
+.sz-ground-haven {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+/* Interactive Legend Chips Below Map */
+.sz-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8.5px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(51, 65, 85, 0.85);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 600;
+  transition:
+    transform var(--m-out) var(--m-ease),
+    border-color var(--m-out) var(--m-ease),
+    background-color var(--m-out) var(--m-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sz-legend-chip:hover {
+    transform: translateY(-1px);
+    border-color: #64748b;
+    background: #1e293b;
+    transition-duration: var(--m-in);
+  }
+
+  .sz-legend-chip:active {
+    transform: translateY(1px) scale(0.985);
+    transition-duration: var(--m-press);
+  }
+}
+
+.sz-legend-chip--active-danger {
+  background: rgba(136, 19, 55, 0.55);
+  border-color: #fb7185;
+  color: #fff1f2;
+}
+
+.sz-legend-chip--active-warning {
+  background: rgba(120, 53, 15, 0.55);
+  border-color: #fbbf24;
+  color: #fef3c7;
+}
+
+.sz-legend-icon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sz-legend-icon--danger {
+  background: #1f0910;
+  border: 1px solid rgba(251, 113, 133, 0.65);
+  color: #fda4af;
+}
+
+.sz-legend-icon--convoy {
+  background: #220a0e;
+  border: 1px solid rgba(253, 164, 175, 0.65);
+  color: #fecdd3;
+}
+
+.sz-legend-icon--warning {
+  background: #1c1306;
+  border: 1px solid rgba(251, 191, 36, 0.65);
+  color: #fde68a;
+}
+
+.sz-legend-pulse-danger {
+  position: absolute;
+  inset: -1px;
+  border-radius: 6px;
+  border: 1px solid #f43f5e;
+  opacity: 0;
+  animation: sz-live-dot-ring var(--m-live) var(--m-ease) infinite;
+  pointer-events: none;
+}
+
+.sz-legend-beacon-ring {
+  position: absolute;
+  inset: -2px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  border: 1.25px solid #34d399;
+  opacity: 0;
+  animation: sz-live-dot-ring var(--m-live) var(--m-ease) infinite;
 }
 
-@keyframes sz-radar-wave {
+@keyframes sz-perimeter-pulse {
   0% {
-    transform: scale(0.95);
-    opacity: 0.85;
+    transform: scale(0.94);
+    opacity: 0.78;
   }
   100% {
-    transform: scale(1.75);
+    transform: scale(1.48);
+    opacity: 0;
+  }
+}
+
+@keyframes sz-warning-pulse {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.62;
+  }
+  70% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+}
+
+@keyframes sz-haven-pulse {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.5;
+  }
+  75% {
+    transform: scale(1.26);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.26);
+    opacity: 0;
+  }
+}
+
+@keyframes sz-live-dot-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.85;
+  }
+  80%, 100% {
+    transform: scale(1.85);
     opacity: 0;
   }
 }
 
 @keyframes sz-sonar-expand {
   0% {
-    transform: scale(0.45);
-    opacity: 0.9;
+    transform: scale(0.6);
+    opacity: 0.85;
   }
   100% {
-    transform: scale(1.55);
+    transform: scale(1.52);
     opacity: 0;
   }
 }
 
-@keyframes sz-haven-float {
-  0%, 100% {
-    transform: translateY(0px);
+@keyframes sz-radar-spin {
+  from {
+    transform: rotate(0deg);
   }
-  50% {
-    transform: translateY(-2.5px);
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes sz-amber-breathe {
+@keyframes sz-subtle-opacity {
   0%, 100% {
-    transform: scale(1);
     opacity: 0.55;
   }
   50% {
-    transform: scale(1.28);
-    opacity: 0.95;
-  }
-}
-
-@keyframes sz-lamp-flicker {
-  0%, 18%, 22%, 62%, 64%, 100% {
     opacity: 1;
-  }
-  20%, 63% {
-    opacity: 0.45;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sz-danger-pulse,
+  .sz-telemetry-wave,
+  .sz-radar-Arc,
+  .sz-pip-ring,
   .sz-sonar-ring,
-  .sz-warning-halo,
-  .sz-haven-glow,
-  .sz-body-haven,
-  .sz-tip-haven,
-  .sz-flicker-icon {
+  .sz-user-fov,
+  .sz-picker-ring,
+  .sz-legend-pulse-danger,
+  .sz-legend-beacon-ring,
+  .sz-svg-cone,
+  .sz-svg-lane {
     animation: none !important;
   }
 }

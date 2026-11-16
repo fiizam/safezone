@@ -41,22 +41,95 @@
           <div class="flex items-center gap-2 mb-0.5">
             <span
               :class="[
-                'w-2 h-2 rounded-full shrink-0',
+                'w-5 h-5 rounded-md border inline-flex items-center justify-center shrink-0',
                 (item.resolvedCount || 0) >= 3
-                  ? 'bg-emerald-500'
-                  : item.dangerLevel === 'high'
-                    ? 'bg-rose-500'
-                    : 'bg-amber-500'
+                  ? 'bg-[#0d151c] border-teal-400/50 text-teal-300'
+                  : item.category === 'begal' || item.category === 'geng_motor' || item.dangerLevel === 'high'
+                    ? 'bg-[#160910] border-rose-400/60 text-rose-300'
+                    : 'bg-[#141008] border-amber-400/60 text-amber-200'
               ]"
-            ></span>
+            >
+              <svg
+                v-if="(item.resolvedCount || 0) >= 3"
+                class="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m8 12.5 2.5 2.5 5.5-5.5"/>
+              </svg>
+              <svg
+                v-else-if="item.category === 'begal'"
+                class="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3 4 7v5c0 5 3.4 9.3 8 10 4.6-.7 8-5 8-10V7l-8-4Z"/>
+                <path d="M12 8v4.5"/>
+                <circle cx="12" cy="15.5" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+              <svg
+                v-else-if="item.category === 'geng_motor'"
+                class="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="5.5" cy="17" r="2.5"/>
+                <circle cx="18.5" cy="17" r="2.5"/>
+                <path d="M8 17h5l2-5.5-3.5-1.5-2.5 3H6.5L8 17Z"/>
+              </svg>
+              <svg
+                v-else-if="item.category === 'gelap'"
+                class="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 20V6a3 3 0 0 1 3-3h6"/>
+                <path d="M13 3h5l1 3h-7l1-3Z"/>
+                <path d="m14 10 4 4m0-4-4 4"/>
+              </svg>
+              <svg
+                v-else
+                class="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 20 9 4m11 16L15 4"/>
+                <path d="M12 6v2m0 3v2m0 3v3"/>
+              </svg>
+            </span>
             <span class="font-bold text-xs text-slate-900 truncate group-hover:text-emerald-800">
               {{ item.title }}
             </span>
           </div>
-          <p class="text-xs text-slate-600 truncate pl-4">
+          <p class="text-xs text-slate-600 truncate pl-7">
             {{ item.description }}
           </p>
-          <div class="flex flex-wrap items-center gap-1.5 pl-4 mt-1">
+          <div class="flex flex-wrap items-center gap-1.5 pl-7 mt-1">
             <span class="text-[10px] font-semibold text-slate-700 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-md">
               Jam Rawan: {{ item.vulnerableHours || defaultHours(item.category) }}
             </span>
