@@ -14,7 +14,7 @@ cat << 'EOF' > "$HOME/.gemini/antigravity-cli/cache/onboarding.json"
 }
 EOF
 
-# Buat jembatan xdg-open agar GitHub Codespaces otomatis membuka link login/remote di browser HP
+# Buat jembatan xdg-open agar GitHub Codespaces otomatis membuka link di browser HP
 cat << 'EOF' > "$HOME/.local/bin/xdg-open"
 #!/usr/bin/env bash
 echo ""
@@ -37,4 +37,5 @@ if ! command -v agy >/dev/null 2>&1; then
   chmod +x "$HOME/.local/bin/agy"
 fi
 
-exec agy --remote-control
+echo "Menyalakan Web Chat Antigravity Mobile Remote (Port 3030)..."
+exec node scripts/remote-ui.mjs
