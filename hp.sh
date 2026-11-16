@@ -2,7 +2,17 @@
 set -e
 
 mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.gemini/antigravity-cli/cache"
 export PATH="$HOME/.local/bin:$HOME/.gemini/bin:$HOME/AppData/Local/agy/bin:$PATH"
+
+# Otomatis tandai onboarding selesai agar tidak nyangkut di layar Terms of Service [Previous] / [Done] di HP
+cat << 'EOF' > "$HOME/.gemini/antigravity-cli/cache/onboarding.json"
+{
+  "consumerOnboardingComplete": true,
+  "enterpriseOnboardingComplete": false,
+  "onboardingComplete": true
+}
+EOF
 
 # Buat jembatan xdg-open agar GitHub Codespaces otomatis membuka link login/remote di browser HP
 cat << 'EOF' > "$HOME/.local/bin/xdg-open"
